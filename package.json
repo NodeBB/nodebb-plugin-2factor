@@ -1,15 +1,17 @@
 {
-  "name": "nodebb-plugin-quickstart",
+  "name": "nodebb-plugin-2factor",
   "version": "0.0.0",
   "description": "",
   "main": "library.js",
   "repository": {
     "type": "git",
-    "url": "https://github.com/julianlam/nodebb-plugin-quickstart"
+    "url": "https://github.com/julianlam/nodebb-plugin-2factor"
   },
   "keywords": [
     "nodebb",
-    "plugin"
+    "plugin",
+    "authentication",
+    "2factor"
   ],
   "author": {
     "name": "Julian Lam",
@@ -17,10 +19,15 @@
   },
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/julianlam/nodebb-plugin-quickstart/issues"
+    "url": "https://github.com/julianlam/nodebb-plugin-2factor/issues"
   },
   "readmeFilename": "README.md",
   "nbbpm": {
-    "compatibility": "^0.6.0"
+    "compatibility": "^0.7.2"
+  },
+  "dependencies": {
+    "notp": "^2.0.3",
+    "passport-totp": "0.0.1",
+    "thirty-two": "0.0.2"
   }
 }

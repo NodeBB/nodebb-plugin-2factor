@@ -1,17 +1,17 @@
-define('admin/plugins/quickstart', ['settings'], function(Settings) {
+define('admin/plugins/2factor', ['settings'], function(Settings) {
 	'use strict';
 	/* globals $, app, socket, require */
 
 	var ACP = {};
 
 	ACP.init = function() {
-		Settings.load('quickstart', $('.quickstart-settings'));
+		Settings.load('2factor', $('.2factor-settings'));
 
 		$('#save').on('click', function() {
-			Settings.save('quickstart', $('.quickstart-settings'), function() {
+			Settings.save('2factor', $('.2factor-settings'), function() {
 				app.alert({
 					type: 'success',
-					alert_id: 'quickstart-saved',
+					alert_id: '2factor-saved',
 					title: 'Settings Saved',
 					message: 'Please reload your NodeBB to apply these settings',
 					clickfn: function() {

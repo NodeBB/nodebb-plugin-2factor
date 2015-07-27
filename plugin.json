@@ -1,10 +1,11 @@
 {
-	"id": "nodebb-plugin-quickstart",
-	"url": "https://github.com/NodeBB/nodebb-plugin-quickstart",
+	"id": "nodebb-plugin-2factor",
+	"url": "https://github.com/NodeBB/nodebb-plugin-2factor",
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
-		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" }
+		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
+		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" }
 	],
 	"staticDirs": {
 		"static": "./static"
@@ -13,8 +14,9 @@
 		"static/style.less"
 	],
 	"scripts": [
-		"static/lib/main.js",
-		"static/lib/admin.js"
+		"static/lib/login.js",
+		"static/lib/admin.js",
+		"static/lib/settings.js"
 	],
 	"templates": "static/templates"
 }
