@@ -1,4 +1,4 @@
-define('admin/plugins/2factor', ['settings'], function(Settings) {
+define('admin/plugins/2factor', ['settings', 'autocomplete'], function(Settings, autocomplete) {
 	'use strict';
 	/* globals $, app, socket, require */
 
@@ -18,6 +18,24 @@ define('admin/plugins/2factor', ['settings'], function(Settings) {
 						socket.emit('admin.reload');
 					}
 				});
+			});
+		});
+
+		autocomplete.user($('input[name="disassociate"]'), function(ev, ui) {
+			var uid = ui.item.user.uid,
+				username = ui.item.user.name;
+
+			bootbox.confirm('Are you sure you wish to deactivate 2FA for <strong>' + username + '</strong>?', function(confirm) {
+				if (confirm) {
+					socket.emit('plugins.2factor.admin.disassociate', {
+						uid: uid
+					}, function(err) {
+						if (!err) {
+							app.alertSuccess('Deactivated 2FA for ' + username);
+							ajaxify.refresh();
+						}
+					});
+				}
 			});
 		});
 	};

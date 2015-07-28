@@ -6,6 +6,8 @@ var passport = module.parent.require('passport'),
 
 	db = module.parent.require('./database'),
 	nconf = module.parent.require('nconf'),
+	async = module.parent.require('async'),
+	user = module.parent.require('./user'),
 
 	SocketPlugins = require.main.require('./src/socket.io/plugins'),
 	plugin = {};
@@ -108,6 +110,15 @@ plugin.check = function(req, res, next) {
 
 plugin.clearSession = function(data) {
 	delete data.req.session.tfa;
+};
+
+plugin.getUsers = function(callback) {
+	async.waterfall([
+		async.apply(db.getObjectKeys, '2factor:uid:key'),
+		function(uids, next) {
+			user.getMultipleUserFields(uids, ['username', 'userslug', 'picture'], next);
+		}
+	], callback);
 };
 
 module.exports = plugin;

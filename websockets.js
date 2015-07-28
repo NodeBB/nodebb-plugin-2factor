@@ -6,7 +6,9 @@ var base32 = require('thirty-two'),
 	notp = require('notp'),
 
 	parent = module.parent.exports,
-	Sockets = {};
+	Sockets = {
+		admin: {}
+	};
 
 Sockets.regenerate = function(socket, data, callback) {
 	var key = utils.generateUUID(),
@@ -39,6 +41,14 @@ Sockets.confirm = function(socket, data, callback) {
 
 Sockets.disassociate = function(socket, data, callback) {
 	parent.disassociate(socket.uid, callback);
+};
+
+Sockets.admin.disassociate = function(socket, data, callback) {
+	user.isAdministrator(socket.uid, function(err, isAdmin) {
+		if (isAdmin) {
+			parent.disassociate(data.uid, callback);
+		}
+	});
 };
 
 module.exports = Sockets;
