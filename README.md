@@ -13,7 +13,9 @@ Install the plugin via the ACP/Plugins page.
 ## Screenshots
 
 ![Token Generation Step](./screenshots/generate.png)
+
 **Token Generation Step**
 
 ![Challenge Step](./screenshots/challenge.png)
+
 **Challenge Step**
