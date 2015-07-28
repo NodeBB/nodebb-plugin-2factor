@@ -28,6 +28,7 @@ plugin.init = function(params, callback) {
 	router.get('/login/2fa', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function(req, res) {
+		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + '/');
 	});
 
@@ -83,6 +84,26 @@ plugin.hasKey = function(uid, callback) {
 
 plugin.disassociate = function(uid, callback) {
 	db.deleteObjectField('2factor:uid:key', uid, callback);
+};
+
+plugin.check = function(req, res, next) {
+	if (!req.user || req.session.tfa === true) {
+		return next();
+	}
+
+	plugin.hasKey(req.user.uid, function(err, hasKey) {
+		if (hasKey) {
+			// Account has TFA, redirect to login
+			if (!res.locals.isAPI) {
+				res.redirect(nconf.get('relative_path') + '/login/2fa');
+			} else {
+				res.status(302).json('/login/2fa');
+			}
+		} else {
+			// No TFA setup
+			return next();
+		}
+	})
 };
 
 module.exports = plugin;

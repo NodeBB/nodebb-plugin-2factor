@@ -5,7 +5,8 @@
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
-		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" }
+		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" },
+		{ "hook": "filter:router.page", "method": "check" }
 	],
 	"staticDirs": {
 		"static": "./static"
