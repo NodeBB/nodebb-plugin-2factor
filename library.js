@@ -14,6 +14,7 @@ plugin.init = function(params, callback) {
 	var router = params.router,
 		hostMiddleware = params.middleware,
 		hostControllers = params.controllers,
+		hostHelpers = require.main.require('./src/routes/helpers'),
 		controllers = require('./lib/controllers');
 		
 	// ACP
@@ -21,15 +22,14 @@ plugin.init = function(params, callback) {
 	router.get('/api/admin/plugins/2factor', controllers.renderAdminPage);
 
 	// UCP
-	router.get('/user/:userslug/2factor', hostMiddleware.buildHeader, hostMiddleware.requireUser, hostMiddleware.exposeUid, controllers.renderSettings);
-	router.get('/api/user/:userslug/2factor', hostMiddleware.requireUser, hostMiddleware.exposeUid, controllers.renderSettings);
+	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, [hostMiddleware.requireUser, hostMiddleware.exposeUid], controllers.renderSettings);
 
 	// 2fa Login
 	router.get('/login/2fa', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function(req, res) {
 		req.session.tfa = true;
-		res.redirect(nconf.get('relative_path') + '/');
+		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
 
 	// Websockets
@@ -97,13 +97,17 @@ plugin.check = function(req, res, next) {
 			if (!res.locals.isAPI) {
 				res.redirect(nconf.get('relative_path') + '/login/2fa');
 			} else {
-				res.status(302).json('/login/2fa');
+				res.status(302).json('/login/2fa?next=' + req.url.replace('/api', ''));
 			}
 		} else {
 			// No TFA setup
 			return next();
 		}
 	})
+};
+
+plugin.clearSession = function(data) {
+	delete data.req.session.tfa;
 };
 
 module.exports = plugin;
