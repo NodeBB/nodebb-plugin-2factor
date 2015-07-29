@@ -121,4 +121,12 @@ plugin.getUsers = function(callback) {
 	], callback);
 };
 
+plugin.updateTitle = function(data, callback) {
+	if (data.fragment.match(/^user\/.+\/2factor/)) {
+		data.parsed = 'Two-Factor Authentication';
+	}
+
+	callback(null, data);
+};
+
 module.exports = plugin;
