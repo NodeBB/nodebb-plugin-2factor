@@ -16,11 +16,21 @@ define('forum/account/2factor', function() {
 						title: 'Generate Token &amp; Set up Device',
 						message: html
 					}),
+					formEl = modal.find('form'),
 					confirmEl = modal.find('button[data-action="confirm"]'),
 					codeEl = modal.find('.2fa-confirm');
 
 				confirmEl.on('click', function() {
 					Settings.completeSetup(data.key, codeEl.val(), modal);
+				});
+
+				formEl.on('submit', function(e) {
+					e.preventDefault()
+					Settings.completeSetup(data.key, codeEl.val(), modal);
+				});
+
+				modal.on('shown.bs.modal', function() {
+					codeEl.focus();
 				});
 			});
 		});
@@ -36,7 +46,9 @@ define('forum/account/2factor', function() {
 				ajaxify.refresh();
 				app.alertSuccess('Successfully enabled Two-Factor Authentication!');
 			} else {
-				app.alertError(err.message);
+				// Probably a bad validation code
+				var inputEl = modal.find('.2fa-confirm');
+				inputEl.parent().addClass('has-error');
 			}
 		});
 	};
