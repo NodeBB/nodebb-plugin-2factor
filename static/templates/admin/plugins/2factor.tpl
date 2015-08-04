@@ -29,6 +29,7 @@
 				<p>
 					The following users have enabled Two-Factor Authentication:
 				</p>
+				<!-- IF users.length -->
 				<ul class="user-list">
 					<!-- BEGIN users --><li>
 						<a href="{users.config.relative_path}/user/{users.userslug}">
@@ -37,6 +38,11 @@
 						</a>
 					</li><!-- END users -->
 				</ul>
+				<!-- ELSE -->
+				<div class="alert alert-warning text-center">
+					<em>No users...</em>
+				</div>
+				<!-- ENDIF users.length -->
 			</div>
 		</div>
 	</div>
