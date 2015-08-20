@@ -21,5 +21,6 @@
 		"static/lib/admin.js",
 		"static/lib/settings.js"
 	],
-	"templates": "static/templates"
+	"templates": "static/templates",
+	"languages": "languages"
 }
