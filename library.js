@@ -8,6 +8,8 @@ var passport = module.parent.require('passport'),
 	nconf = module.parent.require('nconf'),
 	async = module.parent.require('async'),
 	user = module.parent.require('./user'),
+	meta = module.parent.require('./meta'),
+	translator = module.parent.require('../public/src/modules/translator'),
 
 	SocketPlugins = require.main.require('./src/socket.io/plugins'),
 	plugin = {};
@@ -51,25 +53,29 @@ plugin.init = function(params, callback) {
 };
 
 plugin.addAdminNavigation = function(header, callback) {
-	header.plugins.push({
-		route: '/plugins/2factor',
-		icon: 'fa-lock',
-		name: 'Two-Factor Auth (TOTP)'
-	});
+	translator.translate('[[2factor:title]]', function(title) {
+		header.plugins.push({
+			route: '/plugins/2factor',
+			icon: 'fa-lock',
+			name: title
+		});
 
-	callback(null, header);
+		callback(null, header);
+	});
 };
 
 plugin.addProfileItem = function(links, callback) {
-	links.push({
-		id: '2factor',
-		route: '2factor',
-		icon: 'fa-lock',
-		name: 'Two-Factor Authentication',
-		public: false
-	});
+	translator.translate('[[2factor:title]]', function(title) {
+		links.push({
+			id: '2factor',
+			route: '2factor',
+			icon: 'fa-lock',
+			name: title,
+			public: false
+		});
 
-	callback(null, links);
+		callback(null, links);
+	});
 };
 
 plugin.get = function(uid, callback) {
@@ -122,11 +128,13 @@ plugin.getUsers = function(callback) {
 };
 
 plugin.updateTitle = function(data, callback) {
-	if (data.fragment.match(/^user\/.+\/2factor/)) {
-		data.parsed = 'Two-Factor Authentication';
-	}
+	translator.translate('[[2factor:title]]', function(title) {
+		if (data.fragment.match(/^user\/.+\/2factor/)) {
+			data.parsed = title;
+		}
 
-	callback(null, data);
+		callback(null, data);
+	});
 };
 
 module.exports = plugin;

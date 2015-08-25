@@ -12,25 +12,29 @@ define('forum/account/2factor', function() {
 	Settings.beginSetup = function() {
 		socket.emit('plugins.2factor.regenerate', function(err, data) {
 			templates.parse('partials/2factor/generate', data, function(html) {
-				var modal = bootbox.dialog({
-						title: 'Generate Token &amp; Set up Device',
-						message: html
-					}),
-					formEl = modal.find('form'),
-					confirmEl = modal.find('button[data-action="confirm"]'),
-					codeEl = modal.find('.2fa-confirm');
+				translator.translate(html, function(translatedHTML) {
+					translator.translate('[[2factor:generate.title]]', function(title) {
+						var modal = bootbox.dialog({
+								title: title,
+								message: translatedHTML
+							}),
+							formEl = modal.find('form'),
+							confirmEl = modal.find('button[data-action="confirm"]'),
+							codeEl = modal.find('.2fa-confirm');
 
-				confirmEl.on('click', function() {
-					Settings.completeSetup(data.key, codeEl.val(), modal);
-				});
+						confirmEl.on('click', function() {
+							Settings.completeSetup(data.key, codeEl.val(), modal);
+						});
 
-				formEl.on('submit', function(e) {
-					e.preventDefault()
-					Settings.completeSetup(data.key, codeEl.val(), modal);
-				});
+						formEl.on('submit', function(e) {
+							e.preventDefault()
+							Settings.completeSetup(data.key, codeEl.val(), modal);
+						});
 
-				modal.on('shown.bs.modal', function() {
-					codeEl.focus();
+						modal.on('shown.bs.modal', function() {
+							codeEl.focus();
+						});
+					});
 				});
 			});
 		});
@@ -44,7 +48,9 @@ define('forum/account/2factor', function() {
 			if (!err) {
 				modal.modal('hide');
 				ajaxify.refresh();
-				app.alertSuccess('Successfully enabled Two-Factor Authentication!');
+				translator.translate('[[2factor:generate.success]]', function(successText) {
+					app.alertSuccess(successText);
+				});
 			} else {
 				// Probably a bad validation code
 				var inputEl = modal.find('.2fa-confirm');
@@ -54,16 +60,18 @@ define('forum/account/2factor', function() {
 	};
 
 	Settings.disassociate = function() {
-		bootbox.confirm('Are you sure you wish to disable Two-Factor Authentication?', function(confirm) {
-			if (confirm) {
-				socket.emit('plugins.2factor.disassociate', function(err) {
-					if (err) {
-						return app.alertError(err.message);
-					}
+		translator.translate('[[2factor:disable.confirm]]', function(disableText) {
+			bootbox.confirm(disableText, function(confirm) {
+				if (confirm) {
+					socket.emit('plugins.2factor.disassociate', function(err) {
+						if (err) {
+							return app.alertError(err.message);
+						}
 
-					ajaxify.refresh();
-				});
-			}
+						ajaxify.refresh();
+					});
+				}
+			});
 		});
 	};
 
