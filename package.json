@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "notp": "^2.0.3",
-    "passport-totp": "0.0.1",
+    "passport-totp": "0.0.2",
     "thirty-two": "0.0.2"
   }
 }
