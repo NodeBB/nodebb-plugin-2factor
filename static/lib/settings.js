@@ -84,10 +84,10 @@ define('forum/account/2factor', function() {
 				translator.translate(html, function(translatedHTML) {
 					translator.translate('[[2factor:backup.generate.title]]', function(title) {
 						var modal = bootbox.dialog({
-								title: title,
-								message: translatedHTML,
-								onEscape: true
-							});
+							title: title,
+							message: translatedHTML,
+							onEscape: true
+						});
 					});
 				});
 			});
