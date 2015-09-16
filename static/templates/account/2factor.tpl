@@ -27,11 +27,12 @@
 	</div>
 	<div class="panel-body">
 		<!-- IF showSetup -->
-		<p>
-			<button class="btn btn-primary" data-action="regenerate">[[2factor:user.settings.enable]]</button>
-		</p>
+		<button class="btn btn-primary" data-action="regenerate">[[2factor:user.settings.enable]]</button>
 		<!-- ELSE -->
-		<button class="btn btn-danger" data-action="disassociate">[[2factor:user.settings.disable]]</button>
+		<div class="btn-group" role="group" aria-label="Two-Factor Authentication User Settings">
+			<button class="btn btn-info" data-action="generateBackupCodes">[[2factor:user.settings.generateBackupCodes]]</button>
+			<button class="btn btn-danger" data-action="disassociate">[[2factor:user.settings.disable]]</button>
+		</div>
 		<!-- ENDIF showSetup -->
 	</div>
 </div>

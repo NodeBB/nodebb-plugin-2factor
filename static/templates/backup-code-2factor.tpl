@@ -6,7 +6,7 @@
 			</div>
 			<div class="panel-body">
 				<p>
-					[[2factor:login.text]]
+					[[2factor:backup.text]]
 				</p>
 				<!-- IF error -->
 				<div class="alert alert-danger">
@@ -21,7 +21,7 @@
 					<button class="btn btn-block btn-primary text-center" type="submit">[[2factor:login.verify]]</button>
 					<hr />
 					<p class="text-center">
-						<a href="{config.relative_path}/login/2fa/backup"><i class="fa fa-life-ring"></i> [[2factor:login.use_backup]]</a>
+						<a href="{config.relative_path}/login/2fa"><i class="fa fa-history"></i> [[2factor:backup.use_code]]</a>
 					</p>
 				</form>
 			</div>

@@ -6,6 +6,7 @@ define('forum/account/2factor', function() {
 			$('button[data-action="regenerate"]').on('click', Settings.beginSetup);
 		} else {
 			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
+			$('button[data-action="generateBackupCodes"').on('click', Settings.generateBackupCodes);
 		}
 	};
 
@@ -71,6 +72,24 @@ define('forum/account/2factor', function() {
 						ajaxify.refresh();
 					});
 				}
+			});
+		});
+	};
+
+	Settings.generateBackupCodes = function() {
+		$.ajax('/forum/login/2fa/backup', {
+			method: 'put'
+		}).success(function(data) {
+			templates.parse('partials/2factor/generateBackupCodes', data, function(html) {
+				translator.translate(html, function(translatedHTML) {
+					translator.translate('[[2factor:backup.generate.title]]', function(title) {
+						var modal = bootbox.dialog({
+								title: title,
+								message: translatedHTML,
+								onEscape: true
+							});
+					});
+				});
 			});
 		});
 	};

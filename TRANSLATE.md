@@ -1,6 +1,6 @@
 # Language translations for the 2factor plugin
 
-The files here contain the translated language strings used by this plugin.
+The folders in `languages/` contain the translated language strings used by this plugin.
 
 ## I want to add a new language, what do I do?
 

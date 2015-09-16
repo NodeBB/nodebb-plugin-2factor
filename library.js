@@ -8,8 +8,11 @@ var passport = module.parent.require('passport'),
 	nconf = module.parent.require('nconf'),
 	async = module.parent.require('async'),
 	user = module.parent.require('./user'),
+	notifications = module.parent.require('./notifications'),
 	meta = module.parent.require('./meta'),
+	utils = module.parent.require('../public/src/utils'),
 	translator = module.parent.require('../public/src/modules/translator'),
+	routeHelpers = module.parent.require('./controllers/helpers'),
 
 	SocketPlugins = require.main.require('./src/socket.io/plugins'),
 	plugin = {};
@@ -19,7 +22,8 @@ plugin.init = function(params, callback) {
 		hostMiddleware = params.middleware,
 		hostControllers = params.controllers,
 		hostHelpers = require.main.require('./src/routes/helpers'),
-		controllers = require('./lib/controllers');
+		controllers = require('./lib/controllers'),
+		middlewares = require('./lib/middlewares');
 		
 	// ACP
 	router.get('/admin/plugins/2factor', hostMiddleware.admin.buildHeader, controllers.renderAdminPage);
@@ -35,6 +39,15 @@ plugin.init = function(params, callback) {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
+
+	// 2fa backups codes
+	router.get('/login/2fa/backup', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderBackup);
+	router.get('/api/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.renderBackup);
+	router.post('/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.processBackup, function(req, res) {
+		req.session.tfa = true;
+		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
+	});
+	router.put('/login/2fa/backup', hostMiddleware.requireUser, middlewares.requireSecondFactor, controllers.generateBackupCodes);
 
 	// Websockets
 	SocketPlugins['2factor'] = require('./websockets');
@@ -90,8 +103,72 @@ plugin.hasKey = function(uid, callback) {
 	db.isObjectField('2factor:uid:key', uid, callback);
 };
 
+plugin.generateBackupCodes = function(uid, callback) {
+	var set = '2factor:uid:' + uid + ':backupCodes',
+		codes = [],
+		code;
+
+	for(var x=0;x<5;x++) {
+		code = utils.generateUUID().replace('-', '').slice(0, 10);
+		codes.push(code);
+	}
+
+	async.series([
+		async.apply(db.delete, set),		// Invalidate all old codes
+		async.apply(db.setAdd, set, codes),	// Save new codes
+		function(next) {
+			notifications.create({
+				bodyShort: '[[2factor:notification.backupCode.generated]]',
+				bodyLong: '',
+				nid: '2factor.backupCode.generated-' + uid + '-' + Date.now(),
+				from: uid,
+				path: '/'
+			}, function(err, notification) {
+				if (!err && notification) {
+					notifications.push(notification, [uid], next);
+				}
+			});
+		}
+	], function(err) {
+		callback(err, codes);
+	});
+};
+
+plugin.useBackupCode = function(code, uid, callback) {
+	var set = '2factor:uid:' + uid + ':backupCodes';
+
+	async.waterfall([
+		async.apply(db.isSetMember, set, code),
+		function(valid, next) {
+			if (valid) {
+				// Invalidate this backup code
+				db.setRemove(set, code, function(err) {
+					next(err, valid);
+				});
+
+				notifications.create({
+					bodyShort: '[[2factor:notification.backupCode.used]]',
+					bodyLong: '',
+					nid: '2factor.backupCode.used-' + uid + '-' + Date.now(),
+					from: uid,
+					path: '/'
+				}, function(err, notification) {
+					if (!err && notification) {
+						notifications.push(notification, [uid]);
+					}
+				});
+			} else {
+				next(null, valid);
+			}
+		}
+	], callback);
+};
+
 plugin.disassociate = function(uid, callback) {
-	db.deleteObjectField('2factor:uid:key', uid, callback);
+	async.parallel([
+		async.apply(db.deleteObjectField, '2factor:uid:key', uid),
+		async.apply(db.delete, '2factor:uid:' + uid + ':backupCodes')
+	], callback);
 };
 
 plugin.check = function(req, res, next) {
@@ -102,11 +179,7 @@ plugin.check = function(req, res, next) {
 	plugin.hasKey(req.user.uid, function(err, hasKey) {
 		if (hasKey) {
 			// Account has TFA, redirect to login
-			if (!res.locals.isAPI) {
-				res.redirect(nconf.get('relative_path') + '/login/2fa');
-			} else {
-				res.status(302).json('/login/2fa?next=' + req.url.replace('/api', ''));
-			}
+			routeHelpers.redirect(res, '/login/2fa' + (res.locals.isAPI ? '?next=' + req.url.replace('/api', '') : ''));
 		} else {
 			// No TFA setup
 			return next();

@@ -18,6 +18,7 @@
 	],
 	"scripts": [
 		"static/lib/login.js",
+		"static/lib/backup-code.js",
 		"static/lib/admin.js",
 		"static/lib/settings.js"
 	],
