@@ -4,6 +4,7 @@ var base32 = require('thirty-two'),
 	nconf = require.main.require('nconf'),
 	utils = require.main.require('./public/src/utils'),
 	notp = require('notp'),
+	meta = require.main.require('./src/meta'),
 
 	parent = module.parent.exports,
 	Sockets = {
@@ -15,7 +16,8 @@ Sockets.regenerate = function(socket, data, callback) {
 		encodedKey = base32.encode(key);
 
 	user.getUserField(socket.uid, 'userslug', function(err, userslug) {
-		var otpUrl = "otpauth://totp/" + userslug + '@' + nconf.get('url') + '?secret=' + encodedKey + '&period=30',
+		var baseUrl = nconf.get('url').replace(/.*?:\/\//g, "");
+		var otpUrl = "otpauth://totp/" + userslug + "@" + baseUrl + "?issuer=" + meta.config.title + "&secret=" + encodedKey + '&period=30',
 			qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
 	
 		callback(null, {
