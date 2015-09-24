@@ -1,4 +1,4 @@
-define('forum/account/2factor', function() {
+define('forum/account/2factor', ['csrf'], function(csrf) {
 	var Settings = {};
 
 	Settings.init = function() {
@@ -78,7 +78,10 @@ define('forum/account/2factor', function() {
 
 	Settings.generateBackupCodes = function() {
 		$.ajax('/forum/login/2fa/backup', {
-			method: 'put'
+			method: 'put',
+			headers: {
+				'x-csrf-token': csrf.get()
+			}
 		}).success(function(data) {
 			templates.parse('partials/2factor/generateBackupCodes', data, function(html) {
 				translator.translate(html, function(translatedHTML) {

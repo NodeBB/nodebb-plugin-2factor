@@ -47,7 +47,7 @@ plugin.init = function(params, callback) {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
-	router.put('/login/2fa/backup', hostMiddleware.requireUser, middlewares.requireSecondFactor, controllers.generateBackupCodes);
+	router.put('/login/2fa/backup', hostMiddleware.requireUser, middlewares.requireSecondFactor, hostMiddleware.applyCSRF, controllers.generateBackupCodes);
 
 	// Websockets
 	SocketPlugins['2factor'] = require('./websockets');
