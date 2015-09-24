@@ -13,7 +13,7 @@ var base32 = require('thirty-two'),
 
 Sockets.regenerate = function(socket, data, callback) {
 	var key = utils.generateUUID(),
-		encodedKey = base32.encode(key);
+		encodedKey = base32.encode(key).toString().replace(/=/g, '');
 
 	user.getUserField(socket.uid, 'userslug', function(err, userslug) {
 		var baseUrl = nconf.get('url').replace(/.*?:\/\//g, "");
