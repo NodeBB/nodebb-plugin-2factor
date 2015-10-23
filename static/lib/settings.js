@@ -77,7 +77,7 @@ define('forum/account/2factor', ['csrf'], function(csrf) {
 	};
 
 	Settings.generateBackupCodes = function() {
-		$.ajax('/forum/login/2fa/backup', {
+		$.ajax(config.relative_path + '/login/2fa/backup', {
 			method: 'put',
 			headers: {
 				'x-csrf-token': csrf.get()
