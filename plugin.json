@@ -23,5 +23,6 @@
 		"static/lib/settings.js"
 	],
 	"templates": "static/templates",
-	"languages": "languages"
+	"languages": "languages",
+	"defaultLang": "en_GB"
 }
