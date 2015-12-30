@@ -195,7 +195,7 @@ plugin.getUsers = function(callback) {
 	async.waterfall([
 		async.apply(db.getObjectKeys, '2factor:uid:key'),
 		function(uids, next) {
-			user.getMultipleUserFields(uids, ['username', 'userslug', 'picture'], next);
+			user.getUsersFields(uids, ['username', 'userslug', 'picture'], next);
 		}
 	], callback);
 };
