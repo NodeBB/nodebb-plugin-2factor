@@ -19,8 +19,10 @@
 	"scripts": [
 		"static/lib/login.js",
 		"static/lib/backup-code.js",
-		"static/lib/admin.js",
 		"static/lib/settings.js"
+	],
+	"acpScripts": [
+		"static/lib/admin.js"
 	],
 	"templates": "static/templates",
 	"languages": "languages",
