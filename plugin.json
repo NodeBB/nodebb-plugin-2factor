@@ -7,7 +7,7 @@
 		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
 		{ "hook": "filter:user.profileLinks", "method": "addProfileItem" },
 		{ "hook": "filter:router.page", "method": "check" },
-		{ "hook": "action:user.loggedOut", "method": "clearSession" },
+		{ "hook": "static:user.loggedOut", "method": "clearSession" },
 		{ "hook": "filter:parse.title", "method": "updateTitle" }
 	],
 	"staticDirs": {

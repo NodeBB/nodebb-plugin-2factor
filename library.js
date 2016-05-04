@@ -187,8 +187,9 @@ plugin.check = function(req, res, next) {
 	})
 };
 
-plugin.clearSession = function(data) {
+plugin.clearSession = function(data, callback) {
 	delete data.req.session.tfa;
+	setImmediate(callback);
 };
 
 plugin.getUsers = function(callback) {
