@@ -188,7 +188,10 @@ plugin.check = function(req, res, next) {
 };
 
 plugin.clearSession = function(data, callback) {
-	delete data.req.session.tfa;
+	if (data.req.session) {
+		delete data.req.session.tfa;
+	}
+
 	setImmediate(callback);
 };
 
