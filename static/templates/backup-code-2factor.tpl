@@ -1,10 +1,10 @@
 <div class="row">
-	<div class="col-sm-4 col-sm-offset-4">
-		<div class="panel panel-default">
-			<div class="panel-heading">
-				<h3 class="panel-title"><i class="fa fa-mobile-phone"></i> [[2factor:title]]</h3>
+	<div class="col-md-4 offset-md-4">
+		<div class="card">
+			<div class="card-header">
+				<i class="fa fa-mobile-phone"></i> [[2factor:title]]
 			</div>
-			<div class="panel-body">
+			<div class="card-block">
 				<p>
 					[[2factor:backup.text]]
 				</p>
@@ -15,12 +15,12 @@
 				<!-- ENDIF error -->
 				<form role="form" method="post">
 					<div class="form-group">
-						<input type="text" class="form-control input-lg text-center" id="code" name="code" />
+						<input type="text" class="form-control input-lg text-xs-center" id="code" name="code" />
 					</div>
 					<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
-					<button class="btn btn-block btn-primary text-center" type="submit">[[2factor:login.verify]]</button>
+					<button class="btn btn-block btn-primary text-xs-center" type="submit">[[2factor:login.verify]]</button>
 					<hr />
-					<p class="text-center">
+					<p class="text-xs-center">
 						<a href="{config.relative_path}/login/2fa"><i class="fa fa-history"></i> [[2factor:backup.use_code]]</a>
 					</p>
 				</form>

@@ -1,10 +1,10 @@
 <div class="row">
-	<div class="col-xs-6">
-		<div class="text-center">
+	<div class="col-sm-6">
+		<div class="text-xs-center">
 			<img src="{qr}" />
 		</div>
 	</div>
-	<div class="col-xs-6">
+	<div class="col-sm-6">
 		<p>
 			[[2factor:generate.text]]
 		</p>
@@ -18,10 +18,10 @@
 		</form>
 	</div>
 </div>
-<div class="text-center">
+<div class="text-xs-center">
 	<br />
 	<strong>[[2factor:generate.safety.title]]</strong>
-	<p class="help-block">
+	<p class="text-muted">
 		[[2factor:generate.safety.text]]
 	</p>
 </div>

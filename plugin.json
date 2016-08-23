@@ -13,9 +13,6 @@
 	"staticDirs": {
 		"static": "./static"
 	},
-	"less": [
-		"static/style.less"
-	],
 	"scripts": [
 		"static/lib/login.js",
 		"static/lib/backup-code.js",

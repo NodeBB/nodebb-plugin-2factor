@@ -1,9 +1,9 @@
 <!-- IF showSetup -->
-<div class="panel panel-default">
-	<div class="panel-heading">
-		<h3 class="panel-title">[[2factor:intro.title]]</h3>
+<div class="card">
+	<div class="card-header">
+		[[2factor:intro.title]]
 	</div>
-	<div class="panel-body">
+	<div class="card-block">
 		<p>
 			[[2factor:user.intro.one]]
 		</p>
@@ -16,16 +16,16 @@
 	</div>
 </div>
 <!-- ENDIF showSetup -->
-<div class="panel panel-default">
-	<div class="panel-heading">
+<div class="card">
+	<div class="card-header">
 		<!-- IF showSetup -->
-		<span class="text-danger pull-right"><strong>[[2factor:disabled]]</strong> <i class="fa fa-circle"></i></span>
+		<span class="text-danger pull-xs-right"><strong>[[2factor:disabled]]</strong> <i class="fa fa-circle"></i></span>
 		<!-- ELSE -->
-		<span class="text-success pull-right"><strong>[[2factor:enabled]]</strong> <i class="fa fa-circle"></i></span>
+		<span class="text-success pull-xs-right"><strong>[[2factor:enabled]]</strong> <i class="fa fa-circle"></i></span>
 		<!-- ENDIF showSetup -->
-		<h3 class="panel-title">[[2factor:user.settings.title]]</h3>
+		[[2factor:user.settings.title]]
 	</div>
-	<div class="panel-body">
+	<div class="card-block">
 		<!-- IF showSetup -->
 		<button class="btn btn-primary" data-action="regenerate">[[2factor:user.settings.enable]]</button>
 		<!-- ELSE -->
