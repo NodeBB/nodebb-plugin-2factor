@@ -1,4 +1,4 @@
-define('forum/account/2factor', function() {
+define('forum/account/2factor', ['translator'], function(translator) {
 	var Settings = {};
 
 	Settings.init = function() {
@@ -82,7 +82,7 @@ define('forum/account/2factor', function() {
 			headers: {
 				'x-csrf-token': config.csrf_token
 			}
-		}).success(function(data) {
+		}).done(function(data) {
 			templates.parse('partials/2factor/generateBackupCodes', data, function(html) {
 				translator.translate(html, function(translatedHTML) {
 					translator.translate('[[2factor:backup.generate.title]]', function(title) {
