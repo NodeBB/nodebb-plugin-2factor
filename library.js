@@ -77,9 +77,9 @@ plugin.addAdminNavigation = function(header, callback) {
 	});
 };
 
-plugin.addProfileItem = function(links, callback) {
+plugin.addProfileItem = function(data, callback) {
 	translator.translate('[[2factor:title]]', function(title) {
-		links.push({
+		data.links.push({
 			id: '2factor',
 			route: '2factor',
 			icon: 'fa-lock',
@@ -87,7 +87,7 @@ plugin.addProfileItem = function(links, callback) {
 			public: false
 		});
 
-		callback(null, links);
+		callback(null, data);
 	});
 };
 
