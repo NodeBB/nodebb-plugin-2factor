@@ -1,0 +1,47 @@
+{
+	"title": "Autenticazione a due fattori",
+	"intro.title": "Cos'è l'autenticazione a due fattori (2FA)?",
+	"disabled": "Disabilitato",
+	"enabled": "Abilitato",
+	"second-factor-required": "È richiesta l'autenticazione a due fattori per accedere a questa risorsa.",
+
+	"notification.backupCode.generated": "Sono stati generati alcuni codici di backup per questo account.",
+	"notification.backupCode.used": "È stato appena utilizzato un codice di backup per accedere a questo account",
+
+	"user.intro.one": "Oltre all'autenticazione classica tramite username/password o SSO, è possibile configurare un secondo livello di protezione, viene consentito l'accesso solo se viene fornita la one-time password, solitamente generata tramite un dispositivo mobile.",
+	"user.intro.two": "Per abilitare l'autenticazione a due fattori, fare clic sul pulsante in basso al fine di generare un token per NodeBB. Successivamente, scansiona con il tuo dispositivo mobile, tramite GAuthenticator (o un'altra app simile). Infine, conferma l'impostazione inserendo nella scermata di conferma la password generata.",
+	"user.intro.three": "Una volta configurato, il login non sarà confermato fino a quando non viene fornita sia la password che il token generato.",
+	"user.settings.title": "Impostazioni autenticazione a due fattori",
+	"user.settings.enable": "Abilita autenticazione a due fattori",
+	"user.settings.disable": "Disabilita autenticazione a due fattori",
+	"user.settings.generateBackupCodes": "Genera codici di backup",
+
+	"generate.title": "Genera Token &amp; Configura dispositivo",
+	"generate.text": "Il codice QR mostrato in precedenza consentirà di associare il tuo dispositivo mobile (tramite l'app GAuthenticator o una variante appropriata) con il tuo account su questo sito. È sufficiente scansionarlo tramite l'app e digitare il token generato per confermare.",
+	"generate.safety.title": "Mantieni questo token al sicuro! Altri possono utilizzarlo per registrare i propri dispositivi con il tuo account.",
+	"generate.safety.text": "Per scopi di sicurezza, il QR code verrà mostrato solo qui. Nel caso in cui il tuo dispositivo venga perso o non sia a te disponibile, non sarai in grado di accedere a NodeBB a meno che non disattivi 2FA dal tuo account.",
+	"generate.success": "Doppia autenticazione abilitata con successo!",
+
+	"disable.confirm": "Sei sicuro di voler disabilitare l'autenticazione a due fattori ?",
+
+	"login.text": "Inserisci il codice di verifica generato dall'applicazione mobile.",
+	"login.verify": "Verificare",
+	"login.failure": "Il codice di verifica che hai inserito non è corretto",
+	"login.use_backup": "Utilizza un codice di backup",
+
+	"backup.text": "Inserisci uno dei codici di backup.",
+	"backup.failure": "Il codice di backup che hai inserito non è corretto",
+	"backup.use_code": "Utilizza un codice di verifica",
+	"backup.generate.title": "Generare nuovi codici di backup",
+	"backup.generate.one": "Questi codici di backup sono stati generati per aiutarti a ottenere l'accesso al tuo account nel caso in cui il dispositivo di autenticazione (in genere un telefono cellulare) sia stato perso o danneggiato.",
+	"backup.generate.two": "I tuoi codici sono riportati di seguito e non verranno nuovamente mostrati. Scrivili su un pezzo di carta e tienili al sicuro!",
+
+	"admin.intro.one": "<strong>Autenticazioen a due fattori</strong> (2FA) è un protocollo di sicurezza che agisce aggiungendo un secondo livello di autenticazione prima di concederne l'accesso. Tipicamente, questi due strati sono \"qualcosa che conosci\" (es. la tua password), e \"qualcosa che hai\" (es. token generato dal tuo dispositivo mobile). Questo plugin introduce il secondo livello di autenticazione che consente agli utenti di abilitare e accoppiare i propri telefoni o altri dispositivi adatti ai protocolli di autenticazione del tuo forum.",
+	"admin.intro.two": "Una volta attivato questo plugin, gli utenti potranno vedere una nuova voce nel profilo utente \"Autenticazione a due fattori\". Saranno in grado di configurare il loro token da questa pagina.",
+	"admin.users.title": "Utenti con autenticazione a due fattori",
+	"admin.users.text": "I seguenti utenti hanno abilitato l'autenticazione a due fattori:",
+	"admin.users.none": "Nessun utente...",
+	"admin.deactivate.title": "Disattiva i tokens all'utente",
+	"admin.deactivate.text": "Nel caso in cui un utente perda il dispositivo contenente l'applicazione di autenticazione a due fattori, può contattattarti per ottenere l'accesso al proprio account. Una volta che siete sicuri che siano quelli che dicono di essere, puoi disattivare l'autenticazione a due fattori dell'account digitando il loro nome utente qui.",
+	"admin.deactivate.search": "Cerca per utente..."
+}
