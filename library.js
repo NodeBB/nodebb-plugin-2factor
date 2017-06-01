@@ -84,7 +84,13 @@ plugin.addProfileItem = function(data, callback) {
 			route: '2factor',
 			icon: 'fa-lock',
 			name: title,
-			public: false
+			visibility: {
+				self: true,
+				other: false,
+				moderator: false,
+				globalMod: false,
+				admin: false,
+			}
 		});
 
 		callback(null, data);
