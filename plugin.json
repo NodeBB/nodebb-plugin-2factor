@@ -26,5 +26,5 @@
 	],
 	"templates": "static/templates",
 	"languages": "languages",
-	"defaultLang": "en_GB"
+	"defaultLang": "en-GB"
 }
