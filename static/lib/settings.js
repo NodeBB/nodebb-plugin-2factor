@@ -6,7 +6,7 @@ define('forum/account/2factor', ['translator'], function(translator) {
 			$('button[data-action="regenerate"]').on('click', Settings.beginSetup);
 		} else {
 			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
-			$('button[data-action="generateBackupCodes"').on('click', Settings.generateBackupCodes);
+			$('button[data-action="generateBackupCodes"]').on('click', Settings.generateBackupCodes);
 		}
 	};
 
