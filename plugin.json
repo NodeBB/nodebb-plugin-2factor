@@ -8,7 +8,7 @@
 		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
 		{ "hook": "filter:router.page", "method": "check" },
 		{ "hook": "static:user.loggedOut", "method": "clearSession" },
-		{ "hook": "filter:parse.title", "method": "updateTitle" }
+		{ "hook": "filter:middleware.render", "method": "updateTitle" }
 	],
 	"staticDirs": {
 		"static": "./static"
