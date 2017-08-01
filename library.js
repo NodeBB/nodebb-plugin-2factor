@@ -210,14 +210,12 @@ plugin.getUsers = function(callback) {
 	], callback);
 };
 
-plugin.updateTitle = function(data, callback) {
-	translator.translate('[[2factor:title]]', function(title) {
-		if (data.fragment.match(/^user\/.+\/2factor/)) {
-			data.parsed = title;
+plugin.updateTitle = function (data, callback) {
+	translator.translate('[[2factor:title]]', function (title) {
+		if (data.templateData.url.match(/user\/.+\/2factor/)) {
+			data.templateData.title = title;
 		}
-
 		callback(null, data);
 	});
 };
-
 module.exports = plugin;
