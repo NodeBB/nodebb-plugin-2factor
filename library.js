@@ -185,7 +185,7 @@ plugin.check = function(req, res, next) {
 	plugin.hasKey(req.user.uid, function(err, hasKey) {
 		if (hasKey) {
 			// Account has TFA, redirect to login
-			routeHelpers.redirect(res, '/login/2fa' + (res.locals.isAPI ? '?next=' + req.url.replace('/api', '') : ''));
+			routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
 		} else {
 			// No TFA setup
 			return next();
