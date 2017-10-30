@@ -3,6 +3,7 @@
 var passport = module.parent.require('passport'),
 	passportTotp = require('passport-totp').Strategy,
 	loggedIn = module.parent.require('connect-ensure-login'),
+	LRU = require('lru-cache'),
 
 	db = module.parent.require('./database'),
 	nconf = module.parent.require('nconf'),
@@ -15,7 +16,11 @@ var passport = module.parent.require('passport'),
 	routeHelpers = module.parent.require('./controllers/helpers'),
 
 	SocketPlugins = require.main.require('./src/socket.io/plugins'),
-	plugin = {};
+	plugin = {
+		_sessionLock: new LRU({
+			maxAge: 1000 * 60 * 60 * 24 * (parseInt(meta.config.loginDays, 10) || 14),	// Match cookie expiration
+		}),
+	};
 
 plugin.init = function(params, callback) {
 	var router = params.router,
@@ -37,6 +42,8 @@ plugin.init = function(params, callback) {
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function(req, res) {
 		req.session.tfa = true;
+		plugin._sessionLock.del(req.user.uid);
+
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
 
@@ -152,6 +159,8 @@ plugin.useBackupCode = function(code, uid, callback) {
 					next(err, valid);
 				});
 
+				plugin._sessionLock.del(uid);
+
 				notifications.create({
 					bodyShort: '[[2factor:notification.backupCode.used]]',
 					bodyLong: '',
@@ -182,6 +191,9 @@ plugin.check = function(req, res, next) {
 		return next();
 	}
 
+	// Add uid to session lock object
+	plugin._sessionLock.set(req.user.uid, Date.now());
+
 	plugin.hasKey(req.user.uid, function(err, hasKey) {
 		if (hasKey) {
 			// Account has TFA, redirect to login
@@ -198,6 +210,7 @@ plugin.clearSession = function(data, callback) {
 		delete data.req.session.tfa;
 	}
 
+	plugin._sessionLock.del(data.uid);
 	setImmediate(callback);
 };
 
@@ -218,4 +231,21 @@ plugin.updateTitle = function (data, callback) {
 		callback(null, data);
 	});
 };
+
+plugin.restrictMessages = function (data, callback) {
+	var restricted = plugin._sessionLock.has(data.uid);
+
+	if (restricted) {
+		data.canGet = false;
+	}
+
+	callback(null, data);
+};
+
+plugin.restrictMessageSending = function (data, callback) {
+	var restricted = plugin._sessionLock.has(data.uid);
+
+	callback(restricted ? new Error('[[2factor:second-factor-required]]') : undefined);
+};
+
 module.exports = plugin;

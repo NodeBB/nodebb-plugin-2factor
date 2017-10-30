@@ -26,6 +26,7 @@
     "compatibility": "^1.2.0"
   },
   "dependencies": {
+    "lru-cache": "^4.1.1",
     "notp": "^2.0.3",
     "passport-totp": "0.0.2",
     "thirty-two": "0.0.2"
