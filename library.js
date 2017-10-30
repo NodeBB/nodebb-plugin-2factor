@@ -1,35 +1,34 @@
-"use strict";
+'use strict';
 
-var passport = module.parent.require('passport'),
-	passportTotp = require('passport-totp').Strategy,
-	loggedIn = module.parent.require('connect-ensure-login'),
-	LRU = require('lru-cache'),
+var passport = module.parent.require('passport');
+var passportTotp = require('passport-totp').Strategy;
+var loggedIn = module.parent.require('connect-ensure-login');
+var LRU = require('lru-cache');
 
-	db = module.parent.require('./database'),
-	nconf = module.parent.require('nconf'),
-	async = module.parent.require('async'),
-	user = module.parent.require('./user'),
-	notifications = module.parent.require('./notifications'),
-	meta = module.parent.require('./meta'),
-	utils = module.parent.require('../public/src/utils'),
-	translator = module.parent.require('../public/src/modules/translator'),
-	routeHelpers = module.parent.require('./controllers/helpers'),
+var db = module.parent.require('./database');
+var nconf = module.parent.require('nconf');
+var async = module.parent.require('async');
+var user = module.parent.require('./user');
+var notifications = module.parent.require('./notifications');
+var meta = module.parent.require('./meta');
+var utils = module.parent.require('../public/src/utils');
+var translator = module.parent.require('../public/src/modules/translator');
+var routeHelpers = module.parent.require('./controllers/helpers');
+var SocketPlugins = require.main.require('./src/socket.io/plugins');
 
-	SocketPlugins = require.main.require('./src/socket.io/plugins'),
-	plugin = {
-		_sessionLock: new LRU({
-			maxAge: 1000 * 60 * 60 * 24 * (parseInt(meta.config.loginDays, 10) || 14),	// Match cookie expiration
-		}),
-	};
+var plugin = {
+	_sessionLock: new LRU({
+		maxAge: 1000 * 60 * 60 * 24 * (parseInt(meta.config.loginDays, 10) || 14),	// Match cookie expiration
+	}),
+};
 
-plugin.init = function(params, callback) {
-	var router = params.router,
-		hostMiddleware = params.middleware,
-		hostControllers = params.controllers,
-		hostHelpers = require.main.require('./src/routes/helpers'),
-		controllers = require('./lib/controllers'),
-		middlewares = require('./lib/middlewares');
-		
+plugin.init = function (params, callback) {
+	var router = params.router;
+	var hostMiddleware = params.middleware;
+	var hostHelpers = require.main.require('./src/routes/helpers');
+	var controllers = require('./lib/controllers');
+	var middlewares = require('./lib/middlewares');
+
 	// ACP
 	router.get('/admin/plugins/2factor', hostMiddleware.admin.buildHeader, controllers.renderAdminPage);
 	router.get('/api/admin/plugins/2factor', controllers.renderAdminPage);
@@ -40,7 +39,7 @@ plugin.init = function(params, callback) {
 	// 2fa Login
 	router.get('/login/2fa', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
-	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function(req, res) {
+	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function (req, res) {
 		req.session.tfa = true;
 		plugin._sessionLock.del(req.user.uid);
 
@@ -50,7 +49,7 @@ plugin.init = function(params, callback) {
 	// 2fa backups codes
 	router.get('/login/2fa/backup', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderBackup);
 	router.get('/api/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.renderBackup);
-	router.post('/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.processBackup, function(req, res) {
+	router.post('/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.processBackup, function (req, res) {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
@@ -61,8 +60,8 @@ plugin.init = function(params, callback) {
 
 	// Login Strategy
 	passport.use(new passportTotp(
-		function(user, done) {
-			plugin.get(user.uid, function(err, key) {
+		function (user, done) {
+			plugin.get(user.uid, function (err, key) {
 				if (err) { return done(err); }
 				return done(null, key, 30);
 			});
@@ -72,20 +71,20 @@ plugin.init = function(params, callback) {
 	callback();
 };
 
-plugin.addAdminNavigation = function(header, callback) {
-	translator.translate('[[2factor:title]]', function(title) {
+plugin.addAdminNavigation = function (header, callback) {
+	translator.translate('[[2factor:title]]', function (title) {
 		header.plugins.push({
 			route: '/plugins/2factor',
 			icon: 'fa-lock',
-			name: title
+			name: title,
 		});
 
 		callback(null, header);
 	});
 };
 
-plugin.addProfileItem = function(data, callback) {
-	translator.translate('[[2factor:title]]', function(title) {
+plugin.addProfileItem = function (data, callback) {
+	translator.translate('[[2factor:title]]', function (title) {
 		data.links.push({
 			id: '2factor',
 			route: '2factor',
@@ -97,31 +96,31 @@ plugin.addProfileItem = function(data, callback) {
 				moderator: false,
 				globalMod: false,
 				admin: false,
-			}
+			},
 		});
 
 		callback(null, data);
 	});
 };
 
-plugin.get = function(uid, callback) {
+plugin.get = function (uid, callback) {
 	db.getObjectField('2factor:uid:key', uid, callback);
 };
 
-plugin.save = function(uid, key, callback) {
+plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.hasKey = function(uid, callback) {
+plugin.hasKey = function (uid, callback) {
 	db.isObjectField('2factor:uid:key', uid, callback);
 };
 
-plugin.generateBackupCodes = function(uid, callback) {
-	var set = '2factor:uid:' + uid + ':backupCodes',
-		codes = [],
-		code;
+plugin.generateBackupCodes = function (uid, callback) {
+	var set = '2factor:uid:' + uid + ':backupCodes';
+	var codes = [];
+	var code;
 
-	for(var x=0;x<5;x++) {
+	for (var x = 0; x < 5; x++) {
 		code = utils.generateUUID().replace('-', '').slice(0, 10);
 		codes.push(code);
 	}
@@ -129,33 +128,33 @@ plugin.generateBackupCodes = function(uid, callback) {
 	async.series([
 		async.apply(db.delete, set),		// Invalidate all old codes
 		async.apply(db.setAdd, set, codes),	// Save new codes
-		function(next) {
+		function (next) {
 			notifications.create({
 				bodyShort: '[[2factor:notification.backupCode.generated]]',
 				bodyLong: '',
 				nid: '2factor.backupCode.generated-' + uid + '-' + Date.now(),
 				from: uid,
-				path: '/'
-			}, function(err, notification) {
+				path: '/',
+			}, function (err, notification) {
 				if (!err && notification) {
 					notifications.push(notification, [uid], next);
 				}
 			});
-		}
-	], function(err) {
+		},
+	], function (err) {
 		callback(err, codes);
 	});
 };
 
-plugin.useBackupCode = function(code, uid, callback) {
+plugin.useBackupCode = function (code, uid, callback) {
 	var set = '2factor:uid:' + uid + ':backupCodes';
 
 	async.waterfall([
 		async.apply(db.isSetMember, set, code),
-		function(valid, next) {
+		function (valid, next) {
 			if (valid) {
 				// Invalidate this backup code
-				db.setRemove(set, code, function(err) {
+				db.setRemove(set, code, function (err) {
 					next(err, valid);
 				});
 
@@ -166,8 +165,8 @@ plugin.useBackupCode = function(code, uid, callback) {
 					bodyLong: '',
 					nid: '2factor.backupCode.used-' + uid + '-' + Date.now(),
 					from: uid,
-					path: '/'
-				}, function(err, notification) {
+					path: '/',
+				}, function (err, notification) {
 					if (!err && notification) {
 						notifications.push(notification, [uid]);
 					}
@@ -175,18 +174,18 @@ plugin.useBackupCode = function(code, uid, callback) {
 			} else {
 				next(null, valid);
 			}
-		}
+		},
 	], callback);
 };
 
-plugin.disassociate = function(uid, callback) {
+plugin.disassociate = function (uid, callback) {
 	async.parallel([
 		async.apply(db.deleteObjectField, '2factor:uid:key', uid),
-		async.apply(db.delete, '2factor:uid:' + uid + ':backupCodes')
+		async.apply(db.delete, '2factor:uid:' + uid + ':backupCodes'),
 	], callback);
 };
 
-plugin.check = function(req, res, next) {
+plugin.check = function (req, res, next) {
 	if (!req.user || req.session.tfa === true) {
 		return next();
 	}
@@ -194,7 +193,11 @@ plugin.check = function(req, res, next) {
 	// Add uid to session lock object
 	plugin._sessionLock.set(req.user.uid, Date.now());
 
-	plugin.hasKey(req.user.uid, function(err, hasKey) {
+	plugin.hasKey(req.user.uid, function (err, hasKey) {
+		if (err) {
+			return next(err);
+		}
+
 		if (hasKey) {
 			// Account has TFA, redirect to login
 			routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
@@ -202,10 +205,10 @@ plugin.check = function(req, res, next) {
 			// No TFA setup
 			return next();
 		}
-	})
+	});
 };
 
-plugin.clearSession = function(data, callback) {
+plugin.clearSession = function (data, callback) {
 	if (data.req.session) {
 		delete data.req.session.tfa;
 	}
@@ -214,12 +217,12 @@ plugin.clearSession = function(data, callback) {
 	setImmediate(callback);
 };
 
-plugin.getUsers = function(callback) {
+plugin.getUsers = function (callback) {
 	async.waterfall([
 		async.apply(db.getObjectKeys, '2factor:uid:key'),
-		function(uids, next) {
+		function (uids, next) {
 			user.getUsersFields(uids, ['username', 'userslug', 'picture'], next);
-		}
+		},
 	], callback);
 };
 
