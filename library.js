@@ -190,9 +190,6 @@ plugin.check = function (req, res, next) {
 		return next();
 	}
 
-	// Add uid to session lock object
-	plugin._sessionLock.set(req.user.uid, Date.now());
-
 	plugin.hasKey(req.user.uid, function (err, hasKey) {
 		if (err) {
 			return next(err);
