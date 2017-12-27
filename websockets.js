@@ -17,7 +17,9 @@ Sockets.regenerate = function(socket, data, callback) {
 
 	user.getUserField(socket.uid, 'userslug', function(err, userslug) {
 		var baseUrl = nconf.get('url').replace(/.*?:\/\//g, "");
-		var otpUrl = "otpauth://totp/" + userslug + "@" + baseUrl + "?issuer=" + meta.config.title.replace(/\s/, '%20') + "&secret=" + encodedKey + '&period=30',
+		var issuer = encodeURIComponent(meta.config.title.replace(/\s/, '%20')).replace("+", "%20");
+		var account = encodeURIComponent(userslug + "@" + baseUrl).replace("+", "%20");
+		var otpUrl = "otpauth://totp/" + issuer + ":" + account + "?issuer=" + issuer + "&secret=" + encodedKey.replace("+", "%20") + '&period=30',
 			qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
 	
 		callback(null, {
