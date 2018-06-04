@@ -26,7 +26,11 @@
 				<ul class="user-list">
 					<!-- BEGIN users --><li>
 						<a href="{users.config.relative_path}/user/{users.userslug}">
-							<img src="{users.picture}" title="{users.username}" />
+							<!-- IF ../picture -->
+							<img class="avatar avatar-sm" component="user/picture" src="{../picture}" itemprop="image" />
+							<!-- ELSE -->
+							<div class="avatar avatar-sm" component="user/picture" style="background-color: {../icon:bgColor};">{../icon:text}</div>
+							<!-- END -->
 							{users.username}
 						</a>
 					</li><!-- END users -->
