@@ -1,0 +1,47 @@
+{
+	"title": "Weryfikacja dwuetapowa",
+	"intro.title": "Co to weryfikacja dwuetapowa (2FA)?",
+	"disabled": "Wyłączone",
+	"enabled": "Włączone",
+	"second-factor-required": "Aby uzyskać dostęp do tego zasobu, wymagane jest uwierzytelnianie dwuetapowe.",
+
+	"notification.backupCode.generated": "Właśnie wygenerowano zestaw kodów zapasowych dla tego konta.",
+	"notification.backupCode.used": "Kod zapasowy został właśnie użyty do zalogowania się na to konto.",
+
+	"user.intro.one": "Oprócz zwykłego uwierzytelniania za pomocą nazwy użytkownika / hasła lub SSO, można skonfigurować drugą warstwę zabezpieczeń, umożliwiającą dostęp tylko wtedy, gdy dostarczane jest jednorazowe hasło oparte na czasie, zwykle generowane / przechowywane na urządzeniu mobilnym.",
+	"user.intro.two": "Aby włączyć uwierzytelnianie dwuetapowe, kliknij przycisk poniżej, aby wygenerować kod dla ANYForum. Po wygenerowaniu zeskanuj go na urządzenie mobilne za pomocą narzędzia Google Authenticator (lub innej podobnej aplikacji). Na koniec potwierdź konfigurację, wprowadzając bieżący kod czasowy na ekranie potwierdzenia.",
+	"user.intro.three": "Po skonfigurowaniu, próby logowania nie będą kontynuowane, dopóki nie zostanie dostarczone zarówno hasło, jak i jednorazowy kod.",
+	"user.settings.title": "Ustawienia weryfikacji dwuetapowej",
+	"user.settings.enable": "Włącz weryfikacje dwuetapową",
+	"user.settings.disable": "Wyłącz weryfikacje dwuetapową",
+	"user.settings.generateBackupCodes": "Wygeneruj kody zapasowe",
+
+	"generate.title": "Wygeneruj tymczasowy kod &amp; Skonfiguruj urządzenie",
+	"generate.text": "Powyższy kod QR pozwoli ci skojarzyć Twoje urządzenie mobilne (za pośrednictwem aplikacji Google Authenticator lub odpowiedniego wariantu) z Twoim kontem na tej stronie. Wystarczy zeskanować go za pomocą aplikacji i wprowadzić wygenerowany kod w celu potwierdzenia.",
+	"generate.safety.title": "Zachowaj ten kod w bezpiecznym miejscu! Inni mogą go użyć do zarejestrowania swoich urządzeń z przy użyciu Twojego konta.",
+	"generate.safety.text": "Ze względów bezpieczeństwa kod QR zostanie wyświetlony tylko tutaj. Jeśli urządzenie zostanie zgubione lub w inny sposób niedostępne, nie będzie można zalogować się do ANYForum, o ile 2FA nie zostanie dezaktywowane na Twoim koncie.",
+	"generate.success": "Pomyślnie włączono weryfikacje dwuetapową dla Twojego konta, gratulacje!",
+
+	"disable.confirm": "Jesteś pewny, że chcesz wyłączyć weryfikacje dwuetapową?",
+
+	"login.text": "Wprowadź kod weryfikacyjny wygenerowany przez aplikację mobilną.",
+	"login.verify": "Zweryfikuj",
+	"login.failure": "Kod weryfikacyjny który podałeś jest nieprawidłowy, spróbuj jeszcze raz.",
+	"login.use_backup": "Użyj kodu zapasowego",
+
+	"backup.text": "Wprowadź jeden z kodów zapasowych.",
+	"backup.failure": "Wprowadzony kod zapasowy jest nieprawidłowy.",
+	"backup.use_code": "Użyj kodu weryfikacyjnego",
+	"backup.generate.title": "Wygeneruj nowe kody zapasowe",
+	"backup.generate.one": "Te kody zapasowe zostały wygenerowane w celu ułatwienia ponownego uzyskania dostępu do konta w przypadku utraty lub uszkodzenia urządzenia uwierzytelniającego (zazwyczaj telefonu komórkowego).",
+	"backup.generate.two": "Twoje kody wyświetlają się poniżej i nie wyświetlą się ponownie po przeładowaniu strony. Zapisz je na kartce papieru i zabezpiecz!",
+
+	"admin.intro.one": "<strong>Weryfikacja dwuetapowa</strong> (2FA) to protokół bezpieczeństwa, który działa poprzez dodanie drugiej warstwy uwierzytelniania przed przyznaniem dostępu do konta. Zazwyczaj te dwie warstwy to \"coś, co znasz\" (np. Twoje hasło) i \"coś, co masz\" (np. Kod wygenerowany przez Twoje urządzenie mobilne). Wtyczka ta wprowadza drugą warstwę zabezpieczeń, umożliwiając użytkownikom włączanie i łączenie swoich telefonów lub innych odpowiednich urządzeń z dwuetapowymi protokołami uwierzytelniania.",
+	"admin.intro.two": "Gdy ta wtyczka jest aktywna, użytkownicy będą mogli zobaczyć nowy element menu profilu o nazwie \"Uwierzytelnianie dwuetapowe\". Będą mogli ustawić swoje tymczasowe kody dostępu na tej stronie.",
+	"admin.users.title": "Użytkownicy weryfikacji dwuetapowej",
+	"admin.users.text": "Następujący użytkownicy włączyli uwierzytelnianie dwuetapowe:",
+	"admin.users.none": "Brak użytkowników...",
+	"admin.deactivate.title": "Dezaktywuj kody według użytkownika",
+	"admin.deactivate.text": "W przypadku, gdy użytkownik utraci urządzenie zawierające jego dwuskładnikową aplikację uwierzytelniającą, może skontaktować się z Tobą, aby odzyskać dostęp do swojego konta. Gdy masz już pewność, że jest tym, za kogo się podaje, możesz wyłączyć uwierzytelnianie dwuetapowe na jego koncie, wpisując tutaj nazwę użytkownika.",
+	"admin.deactivate.search": "Wyszukaj użytkowników tutaj..."
+}
