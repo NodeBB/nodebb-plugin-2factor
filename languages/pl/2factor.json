@@ -9,7 +9,7 @@
 	"notification.backupCode.used": "Kod zapasowy został właśnie użyty do zalogowania się na to konto.",
 
 	"user.intro.one": "Oprócz zwykłego uwierzytelniania za pomocą nazwy użytkownika / hasła lub SSO, można skonfigurować drugą warstwę zabezpieczeń, umożliwiającą dostęp tylko wtedy, gdy dostarczane jest jednorazowe hasło oparte na czasie, zwykle generowane / przechowywane na urządzeniu mobilnym.",
-	"user.intro.two": "Aby włączyć uwierzytelnianie dwuetapowe, kliknij przycisk poniżej, aby wygenerować kod dla ANYForum. Po wygenerowaniu zeskanuj go na urządzenie mobilne za pomocą narzędzia Google Authenticator (lub innej podobnej aplikacji). Na koniec potwierdź konfigurację, wprowadzając bieżący kod czasowy na ekranie potwierdzenia.",
+	"user.intro.two": "Aby włączyć uwierzytelnianie dwuetapowe, kliknij przycisk poniżej, aby wygenerować kod. Po wygenerowaniu zeskanuj go na urządzenie mobilne za pomocą narzędzia Google Authenticator (lub innej podobnej aplikacji). Na koniec potwierdź konfigurację, wprowadzając bieżący kod czasowy na ekranie potwierdzenia.",
 	"user.intro.three": "Po skonfigurowaniu, próby logowania nie będą kontynuowane, dopóki nie zostanie dostarczone zarówno hasło, jak i jednorazowy kod.",
 	"user.settings.title": "Ustawienia weryfikacji dwuetapowej",
 	"user.settings.enable": "Włącz weryfikacje dwuetapową",
@@ -19,7 +19,7 @@
 	"generate.title": "Wygeneruj tymczasowy kod &amp; Skonfiguruj urządzenie",
 	"generate.text": "Powyższy kod QR pozwoli ci skojarzyć Twoje urządzenie mobilne (za pośrednictwem aplikacji Google Authenticator lub odpowiedniego wariantu) z Twoim kontem na tej stronie. Wystarczy zeskanować go za pomocą aplikacji i wprowadzić wygenerowany kod w celu potwierdzenia.",
 	"generate.safety.title": "Zachowaj ten kod w bezpiecznym miejscu! Inni mogą go użyć do zarejestrowania swoich urządzeń z przy użyciu Twojego konta.",
-	"generate.safety.text": "Ze względów bezpieczeństwa kod QR zostanie wyświetlony tylko tutaj. Jeśli urządzenie zostanie zgubione lub w inny sposób niedostępne, nie będzie można zalogować się do ANYForum, o ile 2FA nie zostanie dezaktywowane na Twoim koncie.",
+	"generate.safety.text": "Ze względów bezpieczeństwa kod QR zostanie wyświetlony tylko tutaj. Jeśli urządzenie zostanie zgubione lub w inny sposób niedostępne, nie będziesz mógł zalogować się na forum dopóki 2FA nie zostanie dezaktywowane na Twoim koncie.",
 	"generate.success": "Pomyślnie włączono weryfikacje dwuetapową dla Twojego konta, gratulacje!",
 
 	"disable.confirm": "Jesteś pewny, że chcesz wyłączyć weryfikacje dwuetapową?",
