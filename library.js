@@ -1,19 +1,19 @@
 'use strict';
 
-var passport = module.parent.require('passport');
+var passport = require.main.require('passport');
 var passportTotp = require('passport-totp').Strategy;
-var loggedIn = module.parent.require('connect-ensure-login');
+var loggedIn = require.main.require('connect-ensure-login');
 var LRU = require('lru-cache');
 
-var db = module.parent.require('./database');
-var nconf = module.parent.require('nconf');
-var async = module.parent.require('async');
-var user = module.parent.require('./user');
-var notifications = module.parent.require('./notifications');
-var meta = module.parent.require('./meta');
-var utils = module.parent.require('../public/src/utils');
-var translator = module.parent.require('../public/src/modules/translator');
-var routeHelpers = module.parent.require('./controllers/helpers');
+var db = require.main.require('./src/database');
+var nconf = require.main.require('nconf');
+var async = require.main.require('async');
+var user = require.main.require('./src/user');
+var notifications = require.main.require('./src/notifications');
+var meta = require.main.require('./src/meta');
+var utils = require.main.require('./src/utils');
+var translator = require.main.require('./public/src/modules/translator');
+var routeHelpers = require.main.require('./src/controllers/helpers');
 var SocketPlugins = require.main.require('./src/socket.io/plugins');
 
 var plugin = {
