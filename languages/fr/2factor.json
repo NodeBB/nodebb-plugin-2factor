@@ -3,10 +3,10 @@
 	"intro.title": "Qu&apos;est-ce l&apos;authentification &agrave; deux facteurs (2FA)?",
 	"disabled": "D&eacute;sactiver",
 	"enabled": "Activer",
-	"second-factor-required": "Two-Factor Authentication is required to access this resource",
+	"second-factor-required": "L&apos;authentification &agrave; deux facteurs est requise pour acc&eacute;der &agrave; cette ressource.",
 
-	"notification.backupCode.generated": "A set of backup codes have just been generated for this account.",
-	"notification.backupCode.used": "A backup code was just used to log into this account",
+	"notification.backupCode.generated": "Des codes de sauvegarde viennent d&apos;&ecirc;tre g&eacute;n&eacute;r&eacute; pour ce compte..",
+	"notification.backupCode.used": "Un code de sauvegarde vient d&apos;&ecirc;tre utilis&eacute; pour se connecter &agrave; ce compte",
 
 	"user.intro.one": "En plus de l&apos;authentification r&eacute;guli&egrave;re par nom d&apos;utilisateur / mot de passe ou SSO, une seconde authentification peut être configur&eacute;e, permettant l&apos;acc&egrave;s que si un mot de passe bas&eacute; sur le temps est fourni, g&eacute;n&eacute;ralement g&eacute;n&eacute;r&eacute; / stock&eacute;e sur un appareil mobile.",
 	"user.intro.two": "Pour activer l&apos;authentification &agrave; deux facteurs, cliquez sur le bouton ci-dessous pour g&eacute;n&eacute;rer un jeton pour NodeBB. Une fois g&eacute;n&eacute;r&eacute;, scanner-le dans votre appareil mobile via le GAuthenticator (ou une application similaire). Enfin, confirmer la configuration en entrant le mot de passe bas&eacute; sur le temps dans l&apos;&eacute;cran de confirmation.",
@@ -14,7 +14,7 @@
 	"user.settings.title": "Param&egrave;tre de l&apos;authentification &agrave; deux facteurs",
 	"user.settings.enable": "Activer l&apos;authentification &agrave; deux facteurs",
 	"user.settings.disable": "D&eacute;sactiver l&apos;authentification &agrave; deux facteurs",
-	"user.settings.generateBackupCodes": "Generate Backup Codes",
+	"user.settings.generateBackupCodes": "G&eacute;n&eacute;rer des codes de sauvegarde",
 
 	"generate.title": "G&eacute;n&eacute;rer un jeton &amp; Configur&eacute; le mobile",
 	"generate.text": "Le code QR ci-dessus vous permettra d&apos;associer votre appareil mobile (via l&apos;application GAuthenticator ou une application similaire) avec votre compte sur ce site. Il suffit de le num&eacute;riser via l&apos;application, et de renseigner la cl&eacute; g&eacute;n&eacute;r&eacute;e dans l&apos;application pour confirmer.",
@@ -29,12 +29,12 @@
 	"login.failure": "Le code est incorrect !",
 	"login.use_backup": "Utiliser le code sauvegarde",
 
-	"backup.text": "Enter one of your backup codes.",
-	"backup.failure": "The backup code you&apos;ve entered is not correct",
-	"backup.use_code": "Use a verification code",
-	"backup.generate.title": "Generate new Backup Codes",
-	"backup.generate.one": "These backup codes have been generated in order to help you re-gain access to your account in the event your authentication device (typically a mobile phone) is lost or damaged.",
-	"backup.generate.two": "Your codes are shown below, and will not be shown again. Write them down on a piece of paper and secure it!",
+	"backup.text": "Saisissez l&apos;un de vos codes de sauvegarde.",
+	"backup.failure": "Le code de sauvegarde que vous avez entr&eacute; est incorrect",
+	"backup.use_code": "Utilisez un code de v&eacute;rification",
+	"backup.generate.title": "G&eacute;n&eacute;rer de nouveaux codes de sauvegarde",
+	"backup.generate.one": "Ces codes de sauvegarde ont &eacute;t&eacute; g&eacute;n&eacute;r&eacute;s pour vous aider &agrave; retrouver l&apos;acc&egrave;s &agrave; votre compte en cas de perte ou d&apos;endommagement de votre p&eacute;riph&eacute;rique d&apos;authentification (g&eacute;n&eacute;ralement un t&eacute;l&eacute;phone mobile).",
+	"backup.generate.two": "Vos codes sont indiqu&eacute;s ci-dessous et ne seront plus affich&eacute;s. Ecrivez-les sur un morceau de papier et cachez-le!",
 
 	"admin.intro.one": "<strong>Authentification &agrave; deux facteurs</strong> (2FA) est un protocole de s&eacute;curit&eacute; qui fonctionne en ajoutant une seconde couche d&apos;authentification avant d&apos;accorder l&apos;acc&egrave;s. Typiquement, ces deux couches sont \"quelque chose que vous avez \" \"quelque chose que vous savez \" (par exemple, votre mot de passe), et (par exemple un jeton g&eacute;n&eacute;r&eacute; par votre appareil mobile). Ce plugin introduit la deuxi&egrave;me couche de s&eacute;curit&eacute; permettant aux utilisateurs d&apos;activer et une paire de leurs t&eacute;l&eacute;phones ou d&apos;autres dispositifs appropri&eacute;s pour les protocoles d&apos;authentification de votre forum.",
 	"admin.intro.two": "Bien que ce plugin est activ&eacute;, les utilisateurs seront en mesure de voir un nouvel &eacute;l&eacute;ment de menu de profil appel&eacute; \"Authentification &agrave; deux facteurs\". Ils seront en mesure de mettre en place leurs jetons sur cette page.",
