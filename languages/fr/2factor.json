@@ -5,8 +5,8 @@
 	"enabled": "Activer",
 	"second-factor-required": "L&apos;authentification &agrave; deux facteurs est requise pour acc&eacute;der &agrave; cette ressource.",
 
-	"notification.backupCode.generated": "Des codes de secours viennent d&apos;&ecirc;tre g&eacute;n&eacute;r&eacute; pour ce compte..",
-	"notification.backupCode.used": "Un code de secours vient d&apos;&ecirc;tre utilis&eacute; pour se connecter &agrave; ce compte",
+	"notification.backupCode.generated": "Des codes de sauvegarde viennent d&apos;&ecirc;tre g&eacute;n&eacute;r&eacute; pour ce compte..",
+	"notification.backupCode.used": "Un code de sauvegarde vient d&apos;&ecirc;tre utilis&eacute; pour se connecter &agrave; ce compte",
 
 	"user.intro.one": "En plus de l&apos;authentification r&eacute;guli&egrave;re par nom d&apos;utilisateur / mot de passe ou SSO, une seconde authentification peut être configur&eacute;e, permettant l&apos;acc&egrave;s que si un mot de passe bas&eacute; sur le temps est fourni, g&eacute;n&eacute;ralement g&eacute;n&eacute;r&eacute; / stock&eacute;e sur un appareil mobile.",
 	"user.intro.two": "Pour activer l&apos;authentification &agrave; deux facteurs, cliquez sur le bouton ci-dessous pour g&eacute;n&eacute;rer un jeton pour NodeBB. Une fois g&eacute;n&eacute;r&eacute;, scanner-le dans votre appareil mobile via le GAuthenticator (ou une application similaire). Enfin, confirmer la configuration en entrant le mot de passe bas&eacute; sur le temps dans l&apos;&eacute;cran de confirmation.",
@@ -14,7 +14,7 @@
 	"user.settings.title": "Param&egrave;tre de l&apos;authentification &agrave; deux facteurs",
 	"user.settings.enable": "Activer l&apos;authentification &agrave; deux facteurs",
 	"user.settings.disable": "D&eacute;sactiver l&apos;authentification &agrave; deux facteurs",
-	"user.settings.generateBackupCodes": "G&eacute;n&eacute;rer des codes de secours",
+	"user.settings.generateBackupCodes": "G&eacute;n&eacute;rer des codes de sauvegarde",
 
 	"generate.title": "G&eacute;n&eacute;rer un jeton &amp; Configur&eacute; le mobile",
 	"generate.text": "Le code QR ci-dessus vous permettra d&apos;associer votre appareil mobile (via l&apos;application GAuthenticator ou une application similaire) avec votre compte sur ce site. Il suffit de le num&eacute;riser via l&apos;application, et de renseigner la cl&eacute; g&eacute;n&eacute;r&eacute;e dans l&apos;application pour confirmer.",
