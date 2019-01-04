@@ -1,41 +1,47 @@
-var base32 = require('thirty-two'),
+'use strict';
 
-	user = require.main.require('./src/user'),
-	nconf = require.main.require('nconf'),
-	utils = require.main.require('./public/src/utils'),
-	notp = require('notp'),
-	meta = require.main.require('./src/meta'),
+const base32 = require('thirty-two');
 
-	parent = module.parent.exports,
-	Sockets = {
-		admin: {}
-	};
+const user = require.main.require('./src/user');
+const nconf = require.main.require('nconf');
+const utils = require.main.require('./public/src/utils');
+const notp = require('notp');
+const meta = require.main.require('./src/meta');
 
-Sockets.regenerate = function(socket, data, callback) {
-	var key = utils.generateUUID(),
-		encodedKey = base32.encode(key).toString().replace(/=/g, '');
+const parent = module.parent.exports;
+const Sockets = {
+	admin: {},
+};
 
-	user.getUserField(socket.uid, 'userslug', function(err, userslug) {
-		var baseUrl = nconf.get('url').replace(/.*?:\/\//g, "");
-		var issuer = encodeURIComponent(meta.config.title.replace(/\s/, '%20')).replace("+", "%20");
-		var account = encodeURIComponent(userslug + "@" + baseUrl).replace("+", "%20");
-		var otpUrl = "otpauth://totp/" + issuer + ":" + account + "?issuer=" + issuer + "&secret=" + encodedKey.replace("+", "%20") + '&period=30',
-			qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
-	
+Sockets.regenerate = function (socket, data, callback) {
+	const key = utils.generateUUID();
+	const encodedKey = base32.encode(key).toString().replace(/=/g, '');
+
+	user.getUserField(socket.uid, 'userslug', function (err, userslug) {
+		if (err) {
+			return callback(err);
+		}
+
+		const baseUrl = nconf.get('url').replace(/.*?:\/\//g, '');
+		const issuer = encodeURIComponent(meta.config.title.replace(/\s/, '%20')).replace('+', '%20');
+		const account = encodeURIComponent(userslug + '@' + baseUrl).replace('+', '%20');
+		const otpUrl = 'otpauth://totp/' + issuer + ':' + account + '?issuer=' + issuer + '&secret=' + encodedKey.replace('+', '%20') + '&period=30';
+		const qrImage = 'https://chart.googleapis.com/chart?chs=166x166&chld=L|0&cht=qr&chl=' + encodeURIComponent(otpUrl);
+
 		callback(null, {
 			qr: qrImage,
-			key: key
+			key: key,
 		});
 	});
 };
 
-Sockets.confirm = function(socket, data, callback) {
-	var key = data.key,
-		token = data.token,
-		confirmed = notp.totp.verify(token, key);
+Sockets.confirm = function (socket, data, callback) {
+	const key = data.key;
+	const token = data.token;
+	const confirmed = notp.totp.verify(token, key);
 
 	if (confirmed) {
-		parent.save(socket.uid, key, function(err) {
+		parent.save(socket.uid, key, function (err) {
 			callback(err);
 		});
 	} else {
@@ -43,13 +49,15 @@ Sockets.confirm = function(socket, data, callback) {
 	}
 };
 
-Sockets.disassociate = function(socket, data, callback) {
+Sockets.disassociate = function (socket, data, callback) {
 	parent.disassociate(socket.uid, callback);
 };
 
-Sockets.admin.disassociate = function(socket, data, callback) {
-	user.isAdministrator(socket.uid, function(err, isAdmin) {
-		if (isAdmin) {
+Sockets.admin.disassociate = function (socket, data, callback) {
+	user.isAdministrator(socket.uid, function (err, isAdmin) {
+		if (err) {
+			return callback(err);
+		} else if (isAdmin) {
 			parent.disassociate(data.uid, callback);
 		}
 	});
