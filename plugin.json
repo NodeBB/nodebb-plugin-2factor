@@ -9,8 +9,6 @@
 		{ "hook": "filter:router.page", "method": "check" },
 		{ "hook": "static:user.loggedOut", "method": "clearSession" },
 		{ "hook": "filter:middleware.render", "method": "updateTitle" },
-		{ "hook": "filter:messaging.canGetMessages", "method": "restrictMessages" },
-		{ "hook": "static:messaging.canMessageRoom", "method": "restrictMessageSending" },
 		{ "hook": "static:sockets.validateSession", "method": "checkSocket" }
 	],
 	"staticDirs": {

@@ -251,20 +251,4 @@ plugin.updateTitle = function (data, callback) {
 	});
 };
 
-plugin.restrictMessages = function (data, callback) {
-	var restricted = plugin._sessionLock.has(data.uid);
-
-	if (restricted) {
-		data.canGet = false;
-	}
-
-	callback(null, data);
-};
-
-plugin.restrictMessageSending = function (data, callback) {
-	var restricted = plugin._sessionLock.has(data.uid);
-
-	callback(restricted ? new Error('[[2factor:second-factor-required]]') : undefined);
-};
-
 module.exports = plugin;
