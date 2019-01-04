@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-2factor",
-  "version": "2.4.3",
+  "version": "2.5.0",
   "description": "",
   "main": "library.js",
   "repository": {
@@ -41,15 +41,15 @@
     "lint-staged": "^8.1.0"
   },
   "husky": {
-      "hooks": {
-          "pre-commit": "lint-staged",
-          "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-      }
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
+    }
   },
   "lint-staged": {
-      "*.js": [
-          "eslint --fix",
-          "git add"
-      ]
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
   }
 }
