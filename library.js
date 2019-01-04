@@ -197,11 +197,30 @@ plugin.check = function (req, res, next) {
 
 		if (hasKey) {
 			// Account has TFA, redirect to login
-			routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
-		} else {
-			// No TFA setup
-			return next();
+			return routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
 		}
+
+		// No TFA setup
+		return next();
+	});
+};
+
+plugin.checkSocket = function (data, callback) {
+	if (!data.socket.uid || data.req.session.tfa === true) {
+		return callback();
+	}
+
+	plugin.hasKey(data.socket.uid, function (err, hasKey) {
+		if (err) {
+			return callback(err);
+		}
+
+		if (hasKey) {
+			return callback(new Error('[[2factor:second-factor-required]]'));
+		}
+
+		// No TFA setup
+		return callback();
 	});
 };
 
