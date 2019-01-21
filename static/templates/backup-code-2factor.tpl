@@ -15,7 +15,7 @@
 				<!-- ENDIF error -->
 				<form role="form" method="post">
 					<div class="form-group">
-						<input type="text" class="form-control input-lg text-center" id="code" name="code" />
+						<input type="text" class="form-control input-lg text-center" id="code" name="code" autocomplete="off" />
 					</div>
 					<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
 					<button class="btn btn-block btn-primary text-center" type="submit">[[2factor:login.verify]]</button>
