@@ -3,24 +3,18 @@
 var passport = require.main.require('passport');
 var passportTotp = require('passport-totp').Strategy;
 var loggedIn = require.main.require('connect-ensure-login');
-var LRU = require('lru-cache');
 
 var db = require.main.require('./src/database');
 var nconf = require.main.require('nconf');
 var async = require.main.require('async');
 var user = require.main.require('./src/user');
 var notifications = require.main.require('./src/notifications');
-var meta = require.main.require('./src/meta');
 var utils = require.main.require('./src/utils');
 var translator = require.main.require('./public/src/modules/translator');
 var routeHelpers = require.main.require('./src/controllers/helpers');
 var SocketPlugins = require.main.require('./src/socket.io/plugins');
 
-var plugin = {
-	_sessionLock: new LRU({
-		maxAge: 1000 * 60 * 60 * 24 * (parseInt(meta.config.loginDays, 10) || 14),	// Match cookie expiration
-	}),
-};
+var plugin = {};
 
 plugin.init = function (params, callback) {
 	var router = params.router;
@@ -41,8 +35,6 @@ plugin.init = function (params, callback) {
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function (req, res) {
 		req.session.tfa = true;
-		plugin._sessionLock.del(req.user.uid);
-
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
 
@@ -158,8 +150,6 @@ plugin.useBackupCode = function (code, uid, callback) {
 					next(err, valid);
 				});
 
-				plugin._sessionLock.del(uid);
-
 				notifications.create({
 					bodyShort: '[[2factor:notification.backupCode.used]]',
 					bodyLong: '',
@@ -229,7 +219,6 @@ plugin.clearSession = function (data, callback) {
 		delete data.req.session.tfa;
 	}
 
-	plugin._sessionLock.del(data.uid);
 	setImmediate(callback);
 };
 
