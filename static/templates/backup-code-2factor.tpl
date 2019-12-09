@@ -8,11 +8,11 @@
 				<p>
 					[[2factor:backup.text]]
 				</p>
-				<!-- IF error -->
+				{{{ if error }}}
 				<div class="alert alert-danger">
 				{error}
 				</div>
-				<!-- ENDIF error -->
+				{{{ end }}}
 				<form role="form" method="post">
 					<div class="form-group">
 						<input type="text" class="form-control input-lg text-center" id="code" name="code" autocomplete="off" />
