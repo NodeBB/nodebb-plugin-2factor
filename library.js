@@ -10,7 +10,7 @@ var async = require.main.require('async');
 var user = require.main.require('./src/user');
 var notifications = require.main.require('./src/notifications');
 var utils = require.main.require('./src/utils');
-var translator = require.main.require('./public/src/modules/translator');
+var translator = require.main.require('./src/translator');
 var routeHelpers = require.main.require('./src/controllers/helpers');
 var SocketPlugins = require.main.require('./src/socket.io/plugins');
 
