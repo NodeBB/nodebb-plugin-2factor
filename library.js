@@ -103,9 +103,7 @@ plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.hasKey = function (uid, callback) {
-	db.isObjectField('2factor:uid:key', uid, callback);
-};
+plugin.hasKey = async (uid) => db.isObjectField('2factor:uid:key', uid);
 
 plugin.generateBackupCodes = function (uid, callback) {
 	var set = '2factor:uid:' + uid + ':backupCodes';
@@ -175,43 +173,29 @@ plugin.disassociate = function (uid, callback) {
 	], callback);
 };
 
-plugin.check = function (req, res, next) {
+plugin.check = async (req, res, next) => {
 	if (!req.user || req.session.tfa === true) {
 		return next();
 	}
+	console.log('IN CHECK');
 
-	plugin.hasKey(req.user.uid, function (err, hasKey) {
-		if (err) {
-			return next(err);
-		}
-
-		if (hasKey) {
-			// Account has TFA, redirect to login
-			return routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
-		}
-
-		// No TFA setup
-		return next();
-	});
-};
-
-plugin.checkSocket = function (data, callback) {
-	if (!data.socket.uid || data.req.session.tfa === true) {
-		return callback();
+	if (await plugin.hasKey(req.user.uid)) {
+		// Account has TFA, redirect to login
+		return routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
 	}
 
-	plugin.hasKey(data.socket.uid, function (err, hasKey) {
-		if (err) {
-			return callback(err);
-		}
+	// No TFA setup
+	return next();
+};
 
-		if (hasKey) {
-			return callback(new Error('[[2factor:second-factor-required]]'));
-		}
+plugin.checkSocket = async (data) => {
+	if (!data.socket.uid || data.req.session.tfa === true) {
+		return;
+	}
 
-		// No TFA setup
-		return callback();
-	});
+	if (await plugin.hasKey(data.socket.uid)) {
+		throw new Error('[[2factor:second-factor-required]]');
+	}
 };
 
 plugin.clearSession = function (data, callback) {
