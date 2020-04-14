@@ -52,11 +52,13 @@ plugin.init = function (params, callback) {
 
 	// Login Strategy
 	passport.use(new passportTotp(
-		function (user, done) {
-			plugin.get(user.uid, function (err, key) {
-				if (err) { return done(err); }
+		async function (user, done) {
+			try {
+				const key = await plugin.get(user.uid);
 				return done(null, key, 30);
-			});
+			} catch (e) {
+				return done(e);
+			}
 		}
 	));
 
@@ -95,9 +97,7 @@ plugin.addProfileItem = function (data, callback) {
 	});
 };
 
-plugin.get = function (uid, callback) {
-	db.getObjectField('2factor:uid:key', uid, callback);
-};
+plugin.get = async (uid) => db.getObjectField('2factor:uid:key', uid);
 
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
