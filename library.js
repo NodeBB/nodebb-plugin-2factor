@@ -227,7 +227,7 @@ plugin.updateTitle = function (data, callback) {
 plugin.integrations = {};
 
 plugin.integrations.writeApi = async (data) => {
-	const routeTest = /^\/api\/v\d\/users\/\d+\/tokens\/?$/;
+	const routeTest = /^\/api\/v\d\/users\/\d+\/tokens\/?/;
 	const uidMatch = data.route.match(/(\d+)\/tokens$/);
 	const uid = uidMatch ? parseInt(uidMatch[1], 10) : 0;
 
@@ -250,8 +250,6 @@ plugin.integrations.writeApi = async (data) => {
 			));
 		}
 	}
-
-	data.next();
 };
 
 module.exports = plugin;
