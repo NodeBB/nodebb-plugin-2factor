@@ -53,5 +53,25 @@
 				</p>
 			</div>
 		</div>
+
+		<div class="panel panel-default">
+			<div class="panel-heading">[[2factor:admin.force_2fa]]</div>
+			<div class="panel-body">
+				<form class="2factor-settings">
+					<div class="form-group">
+						<label for="tfaEnforcedGroups">[[2factor:admin.force_2fa.help]]</label>
+						<select class="form-control" id="tfaEnforcedGroups" name="tfaEnforcedGroups" multiple>
+							<!-- BEGIN groups -->
+							<option value="{../name}">{../value}</option>
+							<!-- END groups -->
+						</select>
+					</div>
+				</form>
+			</div>
+		</div>
 	</div>
 </div>
+
+<button id="save" class="floating-button mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+    <i class="material-icons">save</i>
+</button>

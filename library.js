@@ -1,21 +1,23 @@
 'use strict';
 
-var passport = require.main.require('passport');
-var passportTotp = require('passport-totp').Strategy;
-var loggedIn = require.main.require('connect-ensure-login');
+const passport = require.main.require('passport');
+const passportTotp = require('passport-totp').Strategy;
+const loggedIn = require.main.require('connect-ensure-login');
 const notp = require('notp');
 
-var db = require.main.require('./src/database');
-var nconf = require.main.require('nconf');
-var async = require.main.require('async');
-var user = require.main.require('./src/user');
-var notifications = require.main.require('./src/notifications');
-var utils = require.main.require('./src/utils');
-var translator = require.main.require('./src/translator');
-var routeHelpers = require.main.require('./src/controllers/helpers');
-var SocketPlugins = require.main.require('./src/socket.io/plugins');
+const db = require.main.require('./src/database');
+const nconf = require.main.require('nconf');
+const async = require.main.require('async');
+const user = require.main.require('./src/user');
+const meta = require.main.require('./src/meta');
+const groups = require.main.require('./src/groups');
+const notifications = require.main.require('./src/notifications');
+const utils = require.main.require('./src/utils');
+const translator = require.main.require('./src/translator');
+const routeHelpers = require.main.require('./src/controllers/helpers');
+const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
-var plugin = {};
+const plugin = {};
 
 plugin.init = function (params, callback) {
 	var router = params.router;
@@ -25,8 +27,7 @@ plugin.init = function (params, callback) {
 	var middlewares = require('./lib/middlewares');
 
 	// ACP
-	router.get('/admin/plugins/2factor', hostMiddleware.admin.buildHeader, controllers.renderAdminPage);
-	router.get('/api/admin/plugins/2factor', controllers.renderAdminPage);
+	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', hostMiddleware, [hostMiddleware.pluginHooks], controllers.renderAdminPage);
 
 	// UCP
 	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, [hostMiddleware.requireUser, hostMiddleware.exposeUid], controllers.renderSettings);
@@ -98,13 +99,13 @@ plugin.addProfileItem = function (data, callback) {
 	});
 };
 
-plugin.get = async (uid) => db.getObjectField('2factor:uid:key', uid);
+plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.hasKey = async (uid) => db.isObjectField('2factor:uid:key', uid);
+plugin.hasKey = async uid => db.isObjectField('2factor:uid:key', uid);
 
 plugin.generateBackupCodes = function (uid, callback) {
 	var set = '2factor:uid:' + uid + ':backupCodes';
@@ -179,9 +180,18 @@ plugin.check = async (req, res, next) => {
 		return next();
 	}
 
+	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
+	tfaEnforcedGroups = JSON.parse(tfaEnforcedGroups || '[]');
+
+	const redirect = req.url ? req.url.replace('/api', '') : '/';
+
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
-		return routeHelpers.redirect(res, '/login/2fa?next=' + (req.url ? req.url.replace('/api', '') : '/'));
+		return routeHelpers.redirect(res, '/login/2fa?next=' + redirect);
+	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
+		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
+			return routeHelpers.redirect(res, '/me/2factor?next=' + redirect);
+		}
 	}
 
 	// No TFA setup

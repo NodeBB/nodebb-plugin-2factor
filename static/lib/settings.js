@@ -1,8 +1,8 @@
 'use strict';
 
-/* global define, ajaxify, socket, templates, app, bootbox, $, config */
+/* global define, ajaxify, socket, app, bootbox, $, config */
 
-define('forum/account/2factor', ['translator'], function (translator) {
+define('forum/account/2factor', ['translator', 'benchpress'], function (translator, bch) {
 	var Settings = {};
 
 	Settings.init = function () {
@@ -20,7 +20,7 @@ define('forum/account/2factor', ['translator'], function (translator) {
 				return app.alertError(err);
 			}
 
-			templates.parse('partials/2factor/generate', data, function (html) {
+			bch.parse('partials/2factor/generate', data, function (html) {
 				translator.translate(html, function (translatedHTML) {
 					translator.translate('[[2factor:generate.title]]', function (title) {
 						var modal = bootbox.dialog({
@@ -91,7 +91,7 @@ define('forum/account/2factor', ['translator'], function (translator) {
 				'x-csrf-token': config.csrf_token,
 			},
 		}).done(function (data) {
-			templates.parse('partials/2factor/generateBackupCodes', data, function (html) {
+			bch.parse('partials/2factor/generateBackupCodes', data, function (html) {
 				translator.translate(html, function (translatedHTML) {
 					translator.translate('[[2factor:backup.generate.title]]', function (title) {
 						bootbox.dialog({

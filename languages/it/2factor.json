@@ -15,6 +15,7 @@
 	"user.settings.enable": "Abilita autenticazione a due fattori",
 	"user.settings.disable": "Disabilita autenticazione a due fattori",
 	"user.settings.generateBackupCodes": "Genera codici di backup",
+	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
 	"generate.title": "Genera Token &amp; Configura dispositivo",
 	"generate.text": "Il codice QR mostrato in precedenza consentirà di associare il tuo dispositivo mobile (tramite l'app GAuthenticator o una variante appropriata) con il tuo account su questo sito. È sufficiente scansionarlo tramite l'app e digitare il token generato per confermare.",
@@ -43,5 +44,8 @@
 	"admin.users.none": "Nessun utente...",
 	"admin.deactivate.title": "Disattiva i tokens all'utente",
 	"admin.deactivate.text": "Nel caso in cui un utente perda il dispositivo contenente l'applicazione di autenticazione a due fattori, può contattattarti per ottenere l'accesso al proprio account. Una volta che siete sicuri che siano quelli che dicono di essere, puoi disattivare l'autenticazione a due fattori dell'account digitando il loro nome utente qui.",
-	"admin.deactivate.search": "Cerca per utente..."
+	"admin.deactivate.search": "Cerca per utente...",
+
+	"admin.force_2fa": "Enforce 2factor Authentication",
+	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>"
 }

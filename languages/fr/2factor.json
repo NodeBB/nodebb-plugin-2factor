@@ -15,6 +15,7 @@
 	"user.settings.enable": "Activer l&apos;authentification &agrave; deux facteurs",
 	"user.settings.disable": "D&eacute;sactiver l&apos;authentification &agrave; deux facteurs",
 	"user.settings.generateBackupCodes": "G&eacute;n&eacute;rer des codes de sauvegarde",
+	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
 	"generate.title": "G&eacute;n&eacute;rer un jeton &amp; Configur&eacute; le mobile",
 	"generate.text": "Le code QR ci-dessus vous permettra d&apos;associer votre appareil mobile (via l&apos;application GAuthenticator ou une application similaire) avec votre compte sur ce site. Il suffit de le num&eacute;riser via l&apos;application, et de renseigner la cl&eacute; g&eacute;n&eacute;r&eacute;e dans l&apos;application pour confirmer.",
@@ -43,5 +44,8 @@
 	"admin.users.none": "Aucun utilisateurs ...",
 	"admin.deactivate.title": "D&eacute;sactiver les jetons par utilisateur",
 	"admin.deactivate.text": "Dans le cas où un utilisateur perd le dispositif contenant leur demande d&apos;authentification &agrave; deux facteurs, ils peuvent venir vers vous afin de retrouver l&apos;acc&egrave;s &agrave; leur compte. Une fois que vous êtes sûr de leur identit&eacute;, vous pouvez d&eacute;sactiver l&apos;authentification &agrave; deux facteurs sur leur compte en tapant leur pseudo ici.",
-	"admin.deactivate.search": "Recherche d&apos;utilisateurs ici ..."
+	"admin.deactivate.search": "Recherche d&apos;utilisateurs ici ...",
+
+	"admin.force_2fa": "Enforce 2factor Authentication",
+	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>"
 }
