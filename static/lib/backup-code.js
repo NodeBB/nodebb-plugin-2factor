@@ -1,7 +1,11 @@
-define('forum/backup-code-2factor', function() {
+'use strict';
+
+/* global define, $ */
+
+define('forum/backup-code-2factor', function () {
 	var Plugin = {};
 
-	Plugin.init = function() {
+	Plugin.init = function () {
 		$('input#code').focus();
 	};
 
