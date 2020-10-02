@@ -16,6 +16,11 @@
 	</div>
 </div>
 <!-- ENDIF showSetup -->
+
+<!-- IF forceTfa -->
+<div class="alert alert-info">[[2factor:user.force_2fa]]</div>
+<!-- ENDIF forceTfa -->
+
 <div class="panel panel-default">
 	<div class="panel-heading">
 		<!-- IF showSetup -->
