@@ -24,7 +24,7 @@ Sockets.regenerate = function (socket, data, callback) {
 		}
 
 		const baseUrl = nconf.get('url').replace(/.*?:\/\//g, '');
-		const issuer = encodeURIComponent(meta.config.title.replace(/\s/, '%20')).replace('+', '%20');
+		const issuer = encodeURIComponent(meta.config.title).replace('+', '%20');
 		const account = encodeURIComponent(userslug + '@' + baseUrl).replace('+', '%20');
 		const otpUrl = 'otpauth://totp/' + issuer + ':' + account + '?issuer=' + issuer + '&secret=' + encodedKey.replace('+', '%20') + '&period=30';
 		qrcode.toDataURL(otpUrl, function (err, qrImage) {
