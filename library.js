@@ -37,6 +37,8 @@ plugin.init = function (params, callback) {
 	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
 	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function (req, res) {
 		req.session.tfa = true;
+		delete req.session.tfaForce;
+		req.session.meta.datetime = Date.now();
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
 
@@ -232,6 +234,12 @@ plugin.updateTitle = function (data, callback) {
 		}
 		callback(null, data);
 	});
+};
+
+plugin.adjustRelogin = async ({ req, res }) => {
+	req.session.forceLogin = 0;
+	req.session.tfaForce = 1;
+	routeHelpers.redirect(res, '/login/2fa?next=' + req.session.returnTo);
 };
 
 plugin.integrations = {};
