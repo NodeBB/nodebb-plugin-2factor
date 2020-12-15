@@ -237,9 +237,11 @@ plugin.updateTitle = function (data, callback) {
 };
 
 plugin.adjustRelogin = async ({ req, res }) => {
-	req.session.forceLogin = 0;
-	req.session.tfaForce = 1;
-	routeHelpers.redirect(res, '/login/2fa?next=' + req.session.returnTo);
+	if (await plugin.hasKey(req.uid)) {
+		req.session.forceLogin = 0;
+		req.session.tfaForce = 1;
+		routeHelpers.redirect(res, '/login/2fa?next=' + req.session.returnTo);
+	}
 };
 
 plugin.integrations = {};
