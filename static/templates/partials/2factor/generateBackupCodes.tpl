@@ -8,7 +8,7 @@
 		</p>
 		<ul class="list-group text-center">
 			<!-- BEGIN codes -->
-			<li class="list-group-item">@value</li>
+			<li class="list-group-item">{@value}</li>
 			<!-- END codes -->
 		</ul>
 	</div>
