@@ -1,6 +1,6 @@
 {
   "name": "nodebb-plugin-2factor",
-  "version": "2.9.1",
+  "version": "2.9.2",
   "description": "",
   "main": "library.js",
   "repository": {
