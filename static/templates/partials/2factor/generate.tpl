@@ -19,9 +19,7 @@
 	</div>
 </div>
 <div class="text-center">
-	<br />
-	<strong>[[2factor:generate.safety.title]]</strong>
-	<p class="help-block">
-		[[2factor:generate.safety.text]]
-	</p>
+	<p><code>{encodedKey}</code></p>
+	<p><strong>[[2factor:generate.safety.title]]</strong></p>
+	<p class="help-block">[[2factor:generate.safety.text]]</p>
 </div>

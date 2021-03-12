@@ -2,7 +2,6 @@
 
 const passport = require.main.require('passport');
 const passportTotp = require('passport-totp').Strategy;
-const loggedIn = require.main.require('connect-ensure-login');
 const notp = require('notp');
 
 const db = require.main.require('./src/database');
@@ -33,9 +32,8 @@ plugin.init = function (params, callback) {
 	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, [hostMiddleware.requireUser, hostMiddleware.exposeUid], controllers.renderSettings);
 
 	// 2fa Login
-	router.get('/login/2fa', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderLogin);
-	router.get('/api/login/2fa', loggedIn.ensureLoggedIn(), controllers.renderLogin);
-	router.post('/login/2fa', loggedIn.ensureLoggedIn(), controllers.processLogin, function (req, res) {
+	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderLogin);
+	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, function (req, res) {
 		req.session.tfa = true;
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
@@ -43,9 +41,8 @@ plugin.init = function (params, callback) {
 	});
 
 	// 2fa backups codes
-	router.get('/login/2fa/backup', hostMiddleware.buildHeader, loggedIn.ensureLoggedIn(), controllers.renderBackup);
-	router.get('/api/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.renderBackup);
-	router.post('/login/2fa/backup', loggedIn.ensureLoggedIn(), controllers.processBackup, function (req, res) {
+	hostHelpers.setupPageRoute(router, '/login/2fa/backup', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, function (req, res) {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
@@ -179,6 +176,11 @@ plugin.disassociate = function (uid, callback) {
 
 plugin.check = async (req, res, next) => {
 	if (!req.user || req.session.tfa === true) {
+		return next();
+	}
+
+	const exemptPaths = ['/login/2fa', '/login/2fa/backup'];
+	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
 		return next();
 	}
 
