@@ -3,7 +3,7 @@
   "intro.title": "تایید دو مرحله ای چیست؟",
   "disabled": "غیرفعال",
   "enabled": "فعال",
-  "second-factor-required": "تایید دو مرحله ای برای دسترسی به این محتوا الزامی است",
+  "second-factor-required": "تایید دو مرحله ای برای دسترسی نیاز است",
 
   "notification.backupCode.generated": "مجموعه ای از کد های پشتیبان برای حساب کاربری ایجاد شد.",
   "notification.backupCode.used": "کد پشتیبان برای ورود به این اکانت قبلا استفاده شده است",
