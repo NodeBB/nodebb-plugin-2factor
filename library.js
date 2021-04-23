@@ -174,14 +174,14 @@ plugin.disassociate = function (uid, callback) {
 	], callback);
 };
 
-plugin.check = async (req, res, next) => {
+plugin.check = async ({ req, res }) => {
 	if (!req.user || req.session.tfa === true) {
-		return next();
+		return;
 	}
 
 	const exemptPaths = ['/login/2fa', '/login/2fa/backup'];
 	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
-		return next();
+		return;
 	}
 
 	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
@@ -191,15 +191,14 @@ plugin.check = async (req, res, next) => {
 
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
-		return routeHelpers.redirect(res, '/login/2fa?next=' + redirect);
+		routeHelpers.redirect(res, '/login/2fa?next=' + redirect);
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
-			return routeHelpers.redirect(res, '/me/2factor?next=' + redirect);
+			routeHelpers.redirect(res, '/me/2factor?next=' + redirect);
 		}
 	}
 
 	// No TFA setup
-	return next();
 };
 
 plugin.checkSocket = async (data) => {

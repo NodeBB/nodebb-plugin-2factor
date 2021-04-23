@@ -6,7 +6,7 @@
 		{ "hook": "static:app.load", "method": "init" },
 		{ "hook": "filter:admin.header.build", "method": "addAdminNavigation" },
 		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
-		{ "hook": "filter:router.page", "method": "check" },
+		{ "hook": "response:router.page", "method": "check" },
 		{ "hook": "static:user.loggedOut", "method": "clearSession" },
 		{ "hook": "filter:middleware.render", "method": "updateTitle" },
 		{ "hook": "static:sockets.validateSession", "method": "checkSocket" },
