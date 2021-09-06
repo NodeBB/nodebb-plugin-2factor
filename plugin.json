@@ -1,6 +1,6 @@
 {
 	"id": "nodebb-plugin-2factor",
-	"url": "https://github.com/NodeBB/nodebb-plugin-2factor",
+	"url": "https://github.com/julianlam/nodebb-plugin-2factor",
 	"library": "./library.js",
 	"hooks": [
 		{ "hook": "static:app.load", "method": "init" },
