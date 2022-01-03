@@ -19,13 +19,11 @@
 	<div class="alert alert-info">[[2factor:user.force_2fa]]</div>
 	<!-- ENDIF forceTfa -->
 
-	<h3>
-		{{{ if showSetup }}}
-		<span class="label label-danger"><strong>[[2factor:disabled]]</strong> <i class="fa fa-circle"></i></span>
-		{{{ else }}}
-		<span class="label label-success"><strong>[[2factor:enabled]]</strong> <i class="fa fa-circle"></i></span>
-		{{{ end }}}
-	</h3>
+	<p class="lead">
+		[[2factor:status]]
+		{{{ if showSetup }}}<span class="label label-danger"><strong>[[2factor:disabled]]</strong></span>
+		{{{ else }}}<span class="label label-success"><strong>[[2factor:enabled]]</strong></span>{{{ end }}}
+	</p>
 
 	<!-- IF showSetup -->
 	<p>[[2factor:user.settings.intro-types]]</p>

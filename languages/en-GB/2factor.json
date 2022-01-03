@@ -1,6 +1,7 @@
 {
 	"title": "Two-Factor Authentication",
 	"intro.title": "What is Two-Factor Authentication (2FA)?",
+	"status": "Two-factor authentication is currently",
 	"disabled": "Disabled",
 	"enabled": "Enabled",
 	"second-factor-required": "Two-Factor Authentication is required to access this resource",
