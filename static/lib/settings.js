@@ -1,20 +1,18 @@
 'use strict';
 
-/* global define, ajaxify, socket, app, bootbox, $, config */
-
 define('forum/account/2factor', ['translator', 'benchpress'], function (translator, bch) {
 	var Settings = {};
 
 	Settings.init = function () {
 		if (ajaxify.data.showSetup) {
-			$('button[data-action="regenerate"]').on('click', Settings.beginSetup);
+			$('button[data-action="regenerateTOTP"]').on('click', Settings.setupTotp);
 		} else {
 			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
 			$('button[data-action="generateBackupCodes"]').on('click', Settings.generateBackupCodes);
 		}
 	};
 
-	Settings.beginSetup = function () {
+	Settings.setupTotp = function () {
 		socket.emit('plugins.2factor.regenerate', function (err, data) {
 			if (err) {
 				return app.alertError(err);
@@ -32,12 +30,12 @@ define('forum/account/2factor', ['translator', 'benchpress'], function (translat
 						var codeEl = modal.find('.2fa-confirm');
 
 						confirmEl.on('click', function () {
-							Settings.completeSetup(data.key, codeEl.val(), modal);
+							Settings.verifyTotp(data.key, codeEl.val(), modal);
 						});
 
 						formEl.on('submit', function (e) {
 							e.preventDefault();
-							Settings.completeSetup(data.key, codeEl.val(), modal);
+							Settings.verifyTotp(data.key, codeEl.val(), modal);
 						});
 
 						modal.on('shown.bs.modal', function () {
@@ -49,7 +47,7 @@ define('forum/account/2factor', ['translator', 'benchpress'], function (translat
 		});
 	};
 
-	Settings.completeSetup = function (key, token, modal) {
+	Settings.verifyTotp = function (key, token, modal) {
 		socket.emit('plugins.2factor.confirm', {
 			key: key,
 			token: token,
