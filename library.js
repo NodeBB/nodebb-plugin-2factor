@@ -19,11 +19,11 @@ const SocketPlugins = require.main.require('./src/socket.io/plugins');
 const plugin = {};
 
 plugin.init = function (params, callback) {
-	var router = params.router;
-	var hostMiddleware = params.middleware;
-	var hostHelpers = require.main.require('./src/routes/helpers');
-	var controllers = require('./lib/controllers');
-	var middlewares = require('./lib/middlewares');
+	const { router } = params;
+	const hostMiddleware = params.middleware;
+	const hostHelpers = require.main.require('./src/routes/helpers');
+	const controllers = require('./lib/controllers');
+	const middlewares = require('./lib/middlewares');
 
 	// ACP
 	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', hostMiddleware, [hostMiddleware.pluginHooks], controllers.renderAdminPage);
@@ -33,7 +33,7 @@ plugin.init = function (params, callback) {
 
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderLogin);
-	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, function (req, res) {
+	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, (req, res) => {
 		req.session.tfa = true;
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
@@ -42,7 +42,7 @@ plugin.init = function (params, callback) {
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
-	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, function (req, res) {
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
@@ -53,7 +53,7 @@ plugin.init = function (params, callback) {
 
 	// Login Strategy
 	passport.use(new passportTotp(
-		async function (user, done) {
+		async (user, done) => {
 			try {
 				const key = await plugin.get(user.uid);
 				return done(null, key, 30);
@@ -67,7 +67,7 @@ plugin.init = function (params, callback) {
 };
 
 plugin.addAdminNavigation = function (header, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		header.plugins.push({
 			route: '/plugins/2factor',
 			icon: 'fa-lock',
@@ -79,7 +79,7 @@ plugin.addAdminNavigation = function (header, callback) {
 };
 
 plugin.addProfileItem = function (data, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		data.links.push({
 			id: '2factor',
 			route: '2factor',
@@ -107,55 +107,55 @@ plugin.save = function (uid, key, callback) {
 plugin.hasKey = async uid => db.isObjectField('2factor:uid:key', uid);
 
 plugin.generateBackupCodes = function (uid, callback) {
-	var set = '2factor:uid:' + uid + ':backupCodes';
-	var codes = [];
-	var code;
+	const set = `2factor:uid:${uid}:backupCodes`;
+	const codes = [];
+	let code;
 
-	for (var x = 0; x < 5; x++) {
+	for (let x = 0; x < 5; x++) {
 		code = utils.generateUUID().replace('-', '').slice(0, 10);
 		codes.push(code);
 	}
 
 	async.series([
-		async.apply(db.delete, set),		// Invalidate all old codes
-		async.apply(db.setAdd, set, codes),	// Save new codes
+		async.apply(db.delete, set), // Invalidate all old codes
+		async.apply(db.setAdd, set, codes), // Save new codes
 		function (next) {
 			notifications.create({
 				bodyShort: '[[2factor:notification.backupCode.generated]]',
 				bodyLong: '',
-				nid: '2factor.backupCode.generated-' + uid + '-' + Date.now(),
+				nid: `2factor.backupCode.generated-${uid}-${Date.now()}`,
 				from: uid,
 				path: '/',
-			}, function (err, notification) {
+			}, (err, notification) => {
 				if (!err && notification) {
 					notifications.push(notification, [uid], next);
 				}
 			});
 		},
-	], function (err) {
+	], (err) => {
 		callback(err, codes);
 	});
 };
 
 plugin.useBackupCode = function (code, uid, callback) {
-	var set = '2factor:uid:' + uid + ':backupCodes';
+	const set = `2factor:uid:${uid}:backupCodes`;
 
 	async.waterfall([
 		async.apply(db.isSetMember, set, code),
 		function (valid, next) {
 			if (valid) {
 				// Invalidate this backup code
-				db.setRemove(set, code, function (err) {
+				db.setRemove(set, code, (err) => {
 					next(err, valid);
 				});
 
 				notifications.create({
 					bodyShort: '[[2factor:notification.backupCode.used]]',
 					bodyLong: '',
-					nid: '2factor.backupCode.used-' + uid + '-' + Date.now(),
+					nid: `2factor.backupCode.used-${uid}-${Date.now()}`,
 					from: uid,
 					path: '/',
-				}, function (err, notification) {
+				}, (err, notification) => {
 					if (!err && notification) {
 						notifications.push(notification, [uid]);
 					}
@@ -170,7 +170,7 @@ plugin.useBackupCode = function (code, uid, callback) {
 plugin.disassociate = function (uid, callback) {
 	async.parallel([
 		async.apply(db.deleteObjectField, '2factor:uid:key', uid),
-		async.apply(db.delete, '2factor:uid:' + uid + ':backupCodes'),
+		async.apply(db.delete, `2factor:uid:${uid}:backupCodes`),
 	], callback);
 };
 
@@ -191,10 +191,10 @@ plugin.check = async ({ req, res }) => {
 
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
-		routeHelpers.redirect(res, '/login/2fa?next=' + redirect);
+		routeHelpers.redirect(res, `/login/2fa?next=${redirect}`);
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
-			routeHelpers.redirect(res, '/me/2factor?next=' + redirect);
+			routeHelpers.redirect(res, `/me/2factor?next=${redirect}`);
 		}
 	}
 
@@ -229,7 +229,7 @@ plugin.getUsers = function (callback) {
 };
 
 plugin.updateTitle = function (data, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		if (data.templateData.url.match(/user\/.+\/2factor/)) {
 			data.templateData.title = title;
 		}
@@ -241,7 +241,7 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
-		routeHelpers.redirect(res, '/login/2fa?next=' + req.session.returnTo);
+		routeHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
 	}
 };
 
@@ -257,17 +257,14 @@ plugin.integrations.writeApi = async (data) => {
 		if (!data.req.headers.hasOwnProperty('x-two-factor-authentication')) {
 			// No 2FA received
 			return data.res.status(400).json(data.errorHandler.generate(
-				400, '2fa-enabled',
-				'Two Factor Authentication is enabled for this route, please send in the appropriate additional header for authorization',
-				['x-two-factor-authentication']
+				400, '2fa-enabled', 'Two Factor Authentication is enabled for this route, please send in the appropriate additional header for authorization', ['x-two-factor-authentication']
 			));
 		}
 
 		const skew = notp.totp.verify(data.req.headers['x-two-factor-authentication'], await plugin.get(uid));
 		if (!skew || Math.abs(skew.delta) > 2) {
 			return data.res.status(400).json(data.errorHandler.generate(
-				401, '2fa-failed',
-				'The Two-Factor Authentication code provided is not correct or has expired'
+				401, '2fa-failed', 'The Two-Factor Authentication code provided is not correct or has expired'
 			));
 		}
 	}
