@@ -33,7 +33,8 @@
     "notp": "^2.0.3",
     "passport-totp": "0.0.2",
     "qrcode": "^1.4.4",
-    "thirty-two": "1.0.2"
+    "thirty-two": "1.0.2",
+    "u2f": "^0.1.3"
   },
   "devDependencies": {
     "@commitlint/cli": "^9.1.2",

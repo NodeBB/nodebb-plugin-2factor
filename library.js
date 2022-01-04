@@ -3,6 +3,7 @@
 const passport = require.main.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
+const u2f = require('u2f');
 
 const db = require.main.require('./src/database');
 const nconf = require.main.require('nconf');
@@ -13,7 +14,8 @@ const groups = require.main.require('./src/groups');
 const notifications = require.main.require('./src/notifications');
 const utils = require.main.require('./src/utils');
 const translator = require.main.require('./src/translator');
-const routeHelpers = require.main.require('./src/controllers/helpers');
+const routeHelpers = require.main.require('./src/routes/helpers');
+const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
 const plugin = {};
@@ -66,6 +68,47 @@ plugin.init = function (params, callback) {
 	callback();
 };
 
+plugin.addRoutes = async ({ router, middleware, helpers }) => {
+	const middlewares = [
+		middleware.ensureLoggedIn,
+	];
+
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/u2f/register', middlewares, (req, res) => {
+		const registrationRequest = u2f.request(nconf.get('url'));
+		req.session.registrationRequest = registrationRequest;
+		helpers.formatApiResponse(200, res, registrationRequest);
+	});
+
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/register', middlewares, (req, res) => {
+		const result = u2f.checkRegistration(req.session.registrationRequest, req.body);
+		if (result.successful) {
+			plugin.saveU2F(req.uid, result);
+			delete req.session.registrationRequest;
+			helpers.formatApiResponse(200, res);
+		} else {
+			throw new Error(result.errorMessage);
+		}
+	});
+
+	// Note: auth request generated in Controllers.renderLogin
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/verify', middlewares, async (req, res) => {
+		const publicKey = await plugin.getU2fKey(req.uid);
+		const result = u2f.checkSignature(req.session.authRequest, req.body.authResponse, publicKey);
+		if (result.successful) {
+			req.session.tfa = true;
+			delete req.session.authRequest;
+			delete req.session.tfaForce;
+			req.session.meta.datetime = Date.now();
+
+			helpers.formatApiResponse(200, res, {
+				next: req.query.next || '/',
+			});
+		} else {
+			throw new Error(result.errorMessage);
+		}
+	});
+};
+
 plugin.addAdminNavigation = function (header, callback) {
 	translator.translate('[[2factor:title]]', (title) => {
 		header.plugins.push({
@@ -100,11 +143,34 @@ plugin.addProfileItem = function (data, callback) {
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
+plugin.getU2fKey = async (uid) => {
+	const keys = await db.getSetMembers(`2factor:u2f:${uid}`);
+	return keys.length ? keys.pop() : false; // Currently only supports one key
+};
+
+plugin.getU2fKeyHandle = async publicKey => db.getObjectField('2factor:u2f', publicKey);
+
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.hasKey = async uid => db.isObjectField('2factor:uid:key', uid);
+plugin.saveU2F = (uid, { publicKey, keyHandle }) => {
+	db.setObjectField('2factor:u2f', publicKey, keyHandle);
+	db.setAdd(`2factor:u2f:${uid}`, publicKey);
+};
+
+plugin.hasU2f = async uid => (await db.setCount(`2factor:u2f:${uid}`)) > 0;
+
+plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
+
+plugin.hasKey = async (uid) => {
+	const [hasTotp, u2fCount] = await Promise.all([
+		db.isObjectField('2factor:uid:key', uid),
+		db.setCount(`2factor:u2f:${uid}`),
+	]);
+
+	return hasTotp || u2fCount > 0;
+};
 
 plugin.generateBackupCodes = function (uid, callback) {
 	const set = `2factor:uid:${uid}:backupCodes`;
@@ -167,11 +233,16 @@ plugin.useBackupCode = function (code, uid, callback) {
 	], callback);
 };
 
-plugin.disassociate = function (uid, callback) {
-	async.parallel([
-		async.apply(db.deleteObjectField, '2factor:uid:key', uid),
-		async.apply(db.delete, `2factor:uid:${uid}:backupCodes`),
-	], callback);
+plugin.disassociate = async (uid) => {
+	await Promise.all([
+		db.deleteObjectField('2factor:uid:key', uid),
+		db.delete(`2factor:uid:${uid}:backupCodes`),
+	]);
+
+	// Clear U2F keys
+	const keys = await db.getSetMembers(`2factor:u2f:${uid}`);
+	await db.deleteObjectFields(`2factor:u2f`, keys);
+	await db.delete(`2factor:u2f:${uid}`);
 };
 
 plugin.check = async ({ req, res }) => {
@@ -179,7 +250,7 @@ plugin.check = async ({ req, res }) => {
 		return;
 	}
 
-	const exemptPaths = ['/login/2fa', '/login/2fa/backup'];
+	const exemptPaths = ['/login/2fa', '/login/2fa/backup', '/2factor/u2f/verify'];
 	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
 		return;
 	}
@@ -191,10 +262,10 @@ plugin.check = async ({ req, res }) => {
 
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
-		routeHelpers.redirect(res, `/login/2fa?next=${redirect}`);
+		controllerHelpers.redirect(res, `/login/2fa?next=${redirect}`);
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
-			routeHelpers.redirect(res, `/me/2factor?next=${redirect}`);
+			controllerHelpers.redirect(res, `/me/2factor?next=${redirect}`);
 		}
 	}
 
@@ -241,7 +312,7 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
-		routeHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
+		controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
 	}
 };
 
@@ -253,7 +324,7 @@ plugin.integrations.writeApi = async (data) => {
 	const uid = uidMatch ? parseInt(uidMatch[1], 10) : 0;
 
 	// Enforce 2FA on token generation route
-	if (data.method === 'POST' && routeTest.test(data.route) && await plugin.hasKey(uid)) {
+	if (data.method === 'POST' && routeTest.test(data.route) && await plugin.hasTotp(uid)) {
 		if (!data.req.headers.hasOwnProperty('x-two-factor-authentication')) {
 			// No 2FA received
 			return data.res.status(400).json(data.errorHandler.generate(

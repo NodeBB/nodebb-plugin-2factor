@@ -12,7 +12,7 @@
 	"user.intro.one": "In addition to regular authentication via username/password or SSO, a second layer of security can be configured, permitting access only if a time-based one-time password is supplied, typically generated/stored on a mobile device.",
 	"user.intro.two": "To enable Two-Factor Authentication, select a setup method below. If setting up via authenticator app, scan the supplied QR code and re-enter the time-based token in order to confirm setup. If setting up via hardware key, register your device and sign the challenge presented to continue.",
 	"user.intro.three": "Once setup, login attempts will not proceed until both the password and one-time token/challenge is supplied.",
-	"user.settings.intro-types": "There are two types of second factor authentication supported, a time-based token via an authenticator app, or a hardware-based token via a U2F supported key. Please select which strategy you'd like to set up:",
+	"user.settings.intro-types": "Two types of second factor authentication are supported, a time-based token via an authenticator app, or a hardware-based token via a U2F supported key. Please select which strategy you'd like to set up:",
 	"user.settings.enableTOTP": "<i class=\"fa fa-2x fa-mobile\"></i><br />Set up via authenticator app",
 	"user.settings.enableU2F": "<i class=\"fa fa-2x fa-key\"></i><br />Set up via hardware key",
 	"user.settings.disable": "Disable Two-Factor Authentication",
@@ -24,6 +24,12 @@
 	"generate.safety.title": "Keep this token safe! Others can use it to register their devices with your account.",
 	"generate.safety.text": "For security purposes, the QR code will only be shown here. In the event your device is lost or is otherwise unavailable, you will not be able to log into NodeBB unless 2FA is deactivated on your account.",
 	"generate.success": "Successfully enabled Two-Factor Authentication!",
+
+	"u2f.modal.content": "A request to register your hardware key has been sent, please authenticate by activating the key now<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
+	"u2f.error": "Hardware key registration aborted.",
+	"u2f.success": "Hardware key successfully registered.",
+	"u2f.login.lead": "Please activate your hardware key now.",
+	"u2f.login.info": "This account is protected by two-factor authentication via a physical key. If you own the key for this account, please activate it now by pressing the button on the key.",
 
 	"disable.confirm": "Are you sure you wish to disable Two-Factor Authentication?",
 
