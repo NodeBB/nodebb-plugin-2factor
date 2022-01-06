@@ -95,6 +95,12 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		const publicKey = await plugin.getU2fKey(req.uid);
 		const result = u2f.checkSignature(req.session.authRequest, req.body.authResponse, publicKey);
 		if (result.successful) {
+			const count = await plugin.getU2fCount(req.uid, publicKey);
+			if (result.count < count) {
+				throw new Error('[[2factor:u2f.login.error]]');
+			}
+			await plugin.updateU2fCount(req.uid, publicKey, result.counter);
+
 			req.session.tfa = true;
 			delete req.session.authRequest;
 			delete req.session.tfaForce;
@@ -144,11 +150,15 @@ plugin.addProfileItem = function (data, callback) {
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
 plugin.getU2fKey = async (uid) => {
-	const keys = await db.getSetMembers(`2factor:u2f:${uid}`);
+	const keys = await db.getSortedSetMembers(`2factor:u2f:${uid}`);
 	return keys.length ? keys.pop() : false; // Currently only supports one key
 };
 
 plugin.getU2fKeyHandle = async publicKey => db.getObjectField('2factor:u2f', publicKey);
+
+plugin.getU2fCount = async (uid, publicKey) => db.sortedSetScore(`2factor:u2f:${uid}`, publicKey);
+
+plugin.updateU2fCount = async (uid, publicKey, count) => db.sortedSetAdd(`2factor:u2f:${uid}`, count, publicKey);
 
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
@@ -156,17 +166,17 @@ plugin.save = function (uid, key, callback) {
 
 plugin.saveU2F = (uid, { publicKey, keyHandle }) => {
 	db.setObjectField('2factor:u2f', publicKey, keyHandle);
-	db.setAdd(`2factor:u2f:${uid}`, publicKey);
+	db.sortedSetAdd(`2factor:u2f:${uid}`, 0, publicKey);
 };
 
-plugin.hasU2f = async uid => (await db.setCount(`2factor:u2f:${uid}`)) > 0;
+plugin.hasU2f = async uid => (await db.sortedSetCard(`2factor:u2f:${uid}`)) > 0;
 
 plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
 
 plugin.hasKey = async (uid) => {
 	const [hasTotp, u2fCount] = await Promise.all([
 		db.isObjectField('2factor:uid:key', uid),
-		db.setCount(`2factor:u2f:${uid}`),
+		db.sortedSetCard(`2factor:u2f:${uid}`),
 	]);
 
 	return hasTotp || u2fCount > 0;
@@ -240,7 +250,7 @@ plugin.disassociate = async (uid) => {
 	]);
 
 	// Clear U2F keys
-	const keys = await db.getSetMembers(`2factor:u2f:${uid}`);
+	const keys = await db.getSortedSetMembers(`2factor:u2f:${uid}`);
 	await db.deleteObjectFields(`2factor:u2f`, keys);
 	await db.delete(`2factor:u2f:${uid}`);
 };
