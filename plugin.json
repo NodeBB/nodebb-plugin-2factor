@@ -24,7 +24,8 @@
 	"scripts": [
 		"static/lib/login.js",
 		"static/lib/backup-code.js",
-		"static/lib/settings.js"
+		"static/lib/settings.js",
+		"node_modules/@github/webauthn-json/dist/browser-global/webauthn-json.browser-global.js"
 	],
 	"acpScripts": [
 		"static/lib/admin.js"

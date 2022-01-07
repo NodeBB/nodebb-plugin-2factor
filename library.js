@@ -3,7 +3,8 @@
 const passport = require.main.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
-const u2f = require('u2f');
+const { Fido2Lib } = require('fido2-lib');
+const base64url = require('base64url');
 
 const db = require.main.require('./src/database');
 const nconf = require.main.require('nconf');
@@ -18,7 +19,9 @@ const routeHelpers = require.main.require('./src/routes/helpers');
 const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
-const plugin = {};
+const plugin = {
+	_f2l: undefined,
+};
 
 plugin.init = function (params, callback) {
 	const { router } = params;
@@ -65,6 +68,13 @@ plugin.init = function (params, callback) {
 		}
 	));
 
+	// Fido2Lib instantiation
+	plugin._f2l = new Fido2Lib({
+		timeout: 60 * 1000, // 60 seconds
+		rpId: nconf.get('url_parsed').hostname,
+		rpName: meta.config.title || 'NodeBB',
+	});
+
 	callback();
 };
 
@@ -73,45 +83,60 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		middleware.ensureLoggedIn,
 	];
 
-	routeHelpers.setupApiRoute(router, 'get', '/2factor/u2f/register', middlewares, (req, res) => {
-		const registrationRequest = u2f.request(nconf.get('url'));
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/u2f/register', middlewares, async (req, res) => {
+		const registrationRequest = await plugin._f2l.attestationOptions();
+		registrationRequest.user = {
+			id: base64url(String(req.uid)),
+			name: 'foobar',
+			displayName: 'foobar',
+		};
+		registrationRequest.challenge = base64url(registrationRequest.challenge);
 		req.session.registrationRequest = registrationRequest;
 		helpers.formatApiResponse(200, res, registrationRequest);
 	});
 
-	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/register', middlewares, (req, res) => {
-		const result = u2f.checkRegistration(req.session.registrationRequest, req.body);
-		if (result.successful) {
-			plugin.saveU2F(req.uid, result);
-			delete req.session.registrationRequest;
-			helpers.formatApiResponse(200, res);
-		} else {
-			throw new Error(result.errorMessage);
-		}
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/register', middlewares, async (req, res) => {
+		const attestationExpectations = {
+			challenge: req.session.registrationRequest.challenge,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			factor: 'second',
+		};
+		req.body.rawId = Uint8Array.from(atob(base64url.toBase64(req.body.rawId)), c => c.charCodeAt(0)).buffer;
+		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
+		plugin.saveAuthn(req.uid, regResult.authnrData);
+		delete req.session.registrationRequest;
+		helpers.formatApiResponse(200, res);
 	});
 
 	// Note: auth request generated in Controllers.renderLogin
 	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/verify', middlewares, async (req, res) => {
-		const publicKey = await plugin.getU2fKey(req.uid);
-		const result = u2f.checkSignature(req.session.authRequest, req.body.authResponse, publicKey);
-		if (result.successful) {
-			const count = await plugin.getU2fCount(req.uid, publicKey);
-			if (result.count < count) {
-				throw new Error('[[2factor:u2f.login.error]]');
-			}
-			await plugin.updateU2fCount(req.uid, publicKey, result.counter);
+		const prevCounter = await plugin.getAuthnCount(req.body.authResponse.id);
+		const publicKey = await plugin.getAuthnPublicKey(req.uid, req.body.authResponse.id);
+		const expectations = {
+			challenge: req.session.authRequest,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			factor: 'second',
+			publicKey,
+			prevCounter,
+			userHandle: null,
+		};
 
-			req.session.tfa = true;
-			delete req.session.authRequest;
-			delete req.session.tfaForce;
-			req.session.meta.datetime = Date.now();
+		req.body.authResponse.rawId =
+			Uint8Array.from(atob(base64url.toBase64(req.body.authResponse.rawId)), c => c.charCodeAt(0)).buffer;
+		req.body.authResponse.response.userHandle = undefined;
 
-			helpers.formatApiResponse(200, res, {
-				next: req.query.next || '/',
-			});
-		} else {
-			throw new Error(result.errorMessage);
-		}
+		const authnResult = await plugin._f2l.assertionResult(req.body.authResponse, expectations);
+		const count = authnResult.authnrData.get('counter');
+		await plugin.updateAuthnCount(req.body.authResponse.id, count);
+
+		req.session.tfa = true;
+		delete req.session.authRequest;
+		delete req.session.tfaForce;
+		req.session.meta.datetime = Date.now();
+
+		helpers.formatApiResponse(200, res, {
+			next: req.query.next || '/',
+		});
 	});
 };
 
@@ -149,37 +174,40 @@ plugin.addProfileItem = function (data, callback) {
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
-plugin.getU2fKey = async (uid) => {
-	const keys = await db.getSortedSetMembers(`2factor:u2f:${uid}`);
-	return keys.length ? keys.pop() : false; // Currently only supports one key
+plugin.getAuthnKeyIds = async (uid) => {
+	const keys = await db.getObject(`2factor:webauthn:${uid}`);
+	return Object.keys(keys);
 };
 
-plugin.getU2fKeyHandle = async publicKey => db.getObjectField('2factor:u2f', publicKey);
+plugin.getAuthnPublicKey = async (uid, id) => db.getObjectField(`2factor:webauthn:${uid}`, id);
 
-plugin.getU2fCount = async (uid, publicKey) => db.sortedSetScore(`2factor:u2f:${uid}`, publicKey);
+plugin.getAuthnCount = async id => db.sortedSetScore(`2factor:webauthn:counters`, id);
 
-plugin.updateU2fCount = async (uid, publicKey, count) => db.sortedSetAdd(`2factor:u2f:${uid}`, count, publicKey);
+plugin.updateAuthnCount = async (id, count) => db.sortedSetAdd(`2factor:webauthn:counters`, count, id);
 
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.saveU2F = (uid, { publicKey, keyHandle }) => {
-	db.setObjectField('2factor:u2f', publicKey, keyHandle);
-	db.sortedSetAdd(`2factor:u2f:${uid}`, 0, publicKey);
+plugin.saveAuthn = (uid, authnrData) => {
+	const counter = authnrData.get('counter');
+	const publicKey = authnrData.get('credentialPublicKeyPem');
+	const id = base64url(authnrData.get('credId'));
+	db.setObjectField(`2factor:webauthn:${uid}`, id, publicKey);
+	db.sortedSetAdd(`2factor:webauthn:counters`, counter, id);
 };
 
-plugin.hasU2f = async uid => (await db.sortedSetCard(`2factor:u2f:${uid}`)) > 0;
+plugin.hasAuthn = async uid => db.exists(`2factor:webauthn:${uid}`);
 
 plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
 
 plugin.hasKey = async (uid) => {
-	const [hasTotp, u2fCount] = await Promise.all([
+	const [hasTotp, hasAuthn] = await Promise.all([
 		db.isObjectField('2factor:uid:key', uid),
-		db.sortedSetCard(`2factor:u2f:${uid}`),
+		plugin.hasAuthn(uid),
 	]);
 
-	return hasTotp || u2fCount > 0;
+	return hasTotp || hasAuthn;
 };
 
 plugin.generateBackupCodes = function (uid, callback) {
@@ -250,9 +278,9 @@ plugin.disassociate = async (uid) => {
 	]);
 
 	// Clear U2F keys
-	const keys = await db.getSortedSetMembers(`2factor:u2f:${uid}`);
-	await db.deleteObjectFields(`2factor:u2f`, keys);
-	await db.delete(`2factor:u2f:${uid}`);
+	const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
+	await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
+	await db.delete(`2factor:webauthn:${uid}`);
 };
 
 plugin.check = async ({ req, res }) => {

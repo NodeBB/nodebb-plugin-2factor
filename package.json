@@ -27,8 +27,12 @@
   },
   "dependencies": {
     "@commitlint/cli": "^9.1.2",
+    "@github/webauthn-json": "^0.5.7",
+    "arraybuffer-to-string": "^1.0.2",
     "async": "^3.2.0",
+    "base64url": "^3.0.1",
     "eslint": "8.x",
+    "fido2-lib": "^2.6.8",
     "lru-cache": "^5.1.1",
     "notp": "^2.0.3",
     "passport-totp": "0.0.2",

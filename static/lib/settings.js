@@ -1,12 +1,14 @@
 'use strict';
 
+/* globals webauthnJSON */
+
 define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], function (translator, bch, api, alerts) {
 	var Settings = {};
 
 	Settings.init = function () {
 		if (ajaxify.data.showSetup) {
 			$('button[data-action="regenerateTOTP"]').on('click', Settings.setupTotp);
-			$('button[data-action="regenerateU2F"]').on('click', Settings.setupU2F);
+			$('button[data-action="regenerateU2F"]').on('click', Settings.setupAuthn);
 		} else {
 			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
 			$('button[data-action="generateBackupCodes"]').on('click', Settings.generateBackupCodes);
@@ -48,7 +50,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 		});
 	};
 
-	Settings.setupU2F = function () {
+	Settings.setupAuthn = function () {
 		this.classList.add('disabled');
 		const modal = bootbox.dialog({
 			message: '[[2factor:u2f.modal.content]]',
@@ -56,23 +58,24 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 			className: 'text-center',
 		});
 		api.get('/plugins/2factor/u2f/register', {}).then(async (request) => {
-			window.u2f.register(request.appId, [request], [], (response) => {
+			try {
+				const response = await webauthnJSON.create({
+					publicKey: request,
+				});
 				modal.modal('hide');
-
-				if (response.errorCode) {
-					this.classList.remove('disabled');
-					alerts.alert({
-						message: '[[2factor:u2f.error]]',
-						timeout: 2500,
-					});
-					return;
-				}
 
 				api.post('/plugins/2factor/u2f/register', response).then(() => {
 					ajaxify.refresh();
 					alerts.success('[[2factor:u2f.success]]');
 				}).catch(alerts.error);
-			});
+			} catch (e) {
+				modal.modal('hide');
+				this.classList.remove('disabled');
+				alerts.alert({
+					message: '[[2factor:u2f.error]]',
+					timeout: 2500,
+				});
+			}
 		});
 	};
 

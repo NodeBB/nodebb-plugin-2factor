@@ -11,7 +11,7 @@
 				</div>
 				<!-- ENDIF error -->
 
-				{{{ if challenge }}}
+				{{{ if authnOptions }}}
 					<p class="lead text-center">[[2factor:u2f.login.lead]]<br /><br /><i class="fa fa-spinner fa-spin"></i></p>
 					<p>[[2factor:u2f.login.info]]</p>
 				{{{ else }}}
