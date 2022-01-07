@@ -3,6 +3,8 @@
 const passport = require.main.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
+const { Fido2Lib } = require('fido2-lib');
+const base64url = require('base64url');
 
 const db = require.main.require('./src/database');
 const nconf = require.main.require('nconf');
@@ -13,17 +15,20 @@ const groups = require.main.require('./src/groups');
 const notifications = require.main.require('./src/notifications');
 const utils = require.main.require('./src/utils');
 const translator = require.main.require('./src/translator');
-const routeHelpers = require.main.require('./src/controllers/helpers');
+const routeHelpers = require.main.require('./src/routes/helpers');
+const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
-const plugin = {};
+const plugin = {
+	_f2l: undefined,
+};
 
 plugin.init = function (params, callback) {
-	var router = params.router;
-	var hostMiddleware = params.middleware;
-	var hostHelpers = require.main.require('./src/routes/helpers');
-	var controllers = require('./lib/controllers');
-	var middlewares = require('./lib/middlewares');
+	const { router } = params;
+	const hostMiddleware = params.middleware;
+	const hostHelpers = require.main.require('./src/routes/helpers');
+	const controllers = require('./lib/controllers');
+	const middlewares = require('./lib/middlewares');
 
 	// ACP
 	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', hostMiddleware, [hostMiddleware.pluginHooks], controllers.renderAdminPage);
@@ -33,7 +38,7 @@ plugin.init = function (params, callback) {
 
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderLogin);
-	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, function (req, res) {
+	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, (req, res) => {
 		req.session.tfa = true;
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
@@ -42,7 +47,7 @@ plugin.init = function (params, callback) {
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
-	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, function (req, res) {
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
@@ -53,7 +58,7 @@ plugin.init = function (params, callback) {
 
 	// Login Strategy
 	passport.use(new passportTotp(
-		async function (user, done) {
+		async (user, done) => {
 			try {
 				const key = await plugin.get(user.uid);
 				return done(null, key, 30);
@@ -63,11 +68,80 @@ plugin.init = function (params, callback) {
 		}
 	));
 
+	// Fido2Lib instantiation
+	plugin._f2l = new Fido2Lib({
+		timeout: 60 * 1000, // 60 seconds
+		rpId: nconf.get('url_parsed').hostname,
+		rpName: meta.config.title || 'NodeBB',
+	});
+
 	callback();
 };
 
+plugin.addRoutes = async ({ router, middleware, helpers }) => {
+	const middlewares = [
+		middleware.ensureLoggedIn,
+	];
+
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/u2f/register', middlewares, async (req, res) => {
+		const registrationRequest = await plugin._f2l.attestationOptions();
+		registrationRequest.user = {
+			id: base64url(String(req.uid)),
+			name: 'foobar',
+			displayName: 'foobar',
+		};
+		registrationRequest.challenge = base64url(registrationRequest.challenge);
+		req.session.registrationRequest = registrationRequest;
+		helpers.formatApiResponse(200, res, registrationRequest);
+	});
+
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/register', middlewares, async (req, res) => {
+		const attestationExpectations = {
+			challenge: req.session.registrationRequest.challenge,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			factor: 'second',
+		};
+		req.body.rawId = Uint8Array.from(atob(base64url.toBase64(req.body.rawId)), c => c.charCodeAt(0)).buffer;
+		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
+		plugin.saveAuthn(req.uid, regResult.authnrData);
+		delete req.session.registrationRequest;
+		helpers.formatApiResponse(200, res);
+	});
+
+	// Note: auth request generated in Controllers.renderLogin
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/verify', middlewares, async (req, res) => {
+		const prevCounter = await plugin.getAuthnCount(req.body.authResponse.id);
+		const publicKey = await plugin.getAuthnPublicKey(req.uid, req.body.authResponse.id);
+		const expectations = {
+			challenge: req.session.authRequest,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			factor: 'second',
+			publicKey,
+			prevCounter,
+			userHandle: null,
+		};
+
+		req.body.authResponse.rawId =
+			Uint8Array.from(atob(base64url.toBase64(req.body.authResponse.rawId)), c => c.charCodeAt(0)).buffer;
+		req.body.authResponse.response.userHandle = undefined;
+
+		const authnResult = await plugin._f2l.assertionResult(req.body.authResponse, expectations);
+		const count = authnResult.authnrData.get('counter');
+		await plugin.updateAuthnCount(req.body.authResponse.id, count);
+
+		req.session.tfa = true;
+		delete req.session.authRequest;
+		delete req.session.tfaForce;
+		req.session.meta.datetime = Date.now();
+
+		helpers.formatApiResponse(200, res, {
+			next: req.query.next || '/',
+		});
+	});
+};
+
 plugin.addAdminNavigation = function (header, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		header.plugins.push({
 			route: '/plugins/2factor',
 			icon: 'fa-lock',
@@ -79,7 +153,7 @@ plugin.addAdminNavigation = function (header, callback) {
 };
 
 plugin.addProfileItem = function (data, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		data.links.push({
 			id: '2factor',
 			route: '2factor',
@@ -100,62 +174,92 @@ plugin.addProfileItem = function (data, callback) {
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
+plugin.getAuthnKeyIds = async (uid) => {
+	const keys = await db.getObject(`2factor:webauthn:${uid}`);
+	return Object.keys(keys);
+};
+
+plugin.getAuthnPublicKey = async (uid, id) => db.getObjectField(`2factor:webauthn:${uid}`, id);
+
+plugin.getAuthnCount = async id => db.sortedSetScore(`2factor:webauthn:counters`, id);
+
+plugin.updateAuthnCount = async (id, count) => db.sortedSetAdd(`2factor:webauthn:counters`, count, id);
+
 plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.hasKey = async uid => db.isObjectField('2factor:uid:key', uid);
+plugin.saveAuthn = (uid, authnrData) => {
+	const counter = authnrData.get('counter');
+	const publicKey = authnrData.get('credentialPublicKeyPem');
+	const id = base64url(authnrData.get('credId'));
+	db.setObjectField(`2factor:webauthn:${uid}`, id, publicKey);
+	db.sortedSetAdd(`2factor:webauthn:counters`, counter, id);
+};
+
+plugin.hasAuthn = async uid => db.exists(`2factor:webauthn:${uid}`);
+
+plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
+
+plugin.hasKey = async (uid) => {
+	const [hasTotp, hasAuthn] = await Promise.all([
+		db.isObjectField('2factor:uid:key', uid),
+		plugin.hasAuthn(uid),
+	]);
+
+	return hasTotp || hasAuthn;
+};
 
 plugin.generateBackupCodes = function (uid, callback) {
-	var set = '2factor:uid:' + uid + ':backupCodes';
-	var codes = [];
-	var code;
+	const set = `2factor:uid:${uid}:backupCodes`;
+	const codes = [];
+	let code;
 
-	for (var x = 0; x < 5; x++) {
+	for (let x = 0; x < 5; x++) {
 		code = utils.generateUUID().replace('-', '').slice(0, 10);
 		codes.push(code);
 	}
 
 	async.series([
-		async.apply(db.delete, set),		// Invalidate all old codes
-		async.apply(db.setAdd, set, codes),	// Save new codes
+		async.apply(db.delete, set), // Invalidate all old codes
+		async.apply(db.setAdd, set, codes), // Save new codes
 		function (next) {
 			notifications.create({
 				bodyShort: '[[2factor:notification.backupCode.generated]]',
 				bodyLong: '',
-				nid: '2factor.backupCode.generated-' + uid + '-' + Date.now(),
+				nid: `2factor.backupCode.generated-${uid}-${Date.now()}`,
 				from: uid,
 				path: '/',
-			}, function (err, notification) {
+			}, (err, notification) => {
 				if (!err && notification) {
 					notifications.push(notification, [uid], next);
 				}
 			});
 		},
-	], function (err) {
+	], (err) => {
 		callback(err, codes);
 	});
 };
 
 plugin.useBackupCode = function (code, uid, callback) {
-	var set = '2factor:uid:' + uid + ':backupCodes';
+	const set = `2factor:uid:${uid}:backupCodes`;
 
 	async.waterfall([
 		async.apply(db.isSetMember, set, code),
 		function (valid, next) {
 			if (valid) {
 				// Invalidate this backup code
-				db.setRemove(set, code, function (err) {
+				db.setRemove(set, code, (err) => {
 					next(err, valid);
 				});
 
 				notifications.create({
 					bodyShort: '[[2factor:notification.backupCode.used]]',
 					bodyLong: '',
-					nid: '2factor.backupCode.used-' + uid + '-' + Date.now(),
+					nid: `2factor.backupCode.used-${uid}-${Date.now()}`,
 					from: uid,
 					path: '/',
-				}, function (err, notification) {
+				}, (err, notification) => {
 					if (!err && notification) {
 						notifications.push(notification, [uid]);
 					}
@@ -167,11 +271,16 @@ plugin.useBackupCode = function (code, uid, callback) {
 	], callback);
 };
 
-plugin.disassociate = function (uid, callback) {
-	async.parallel([
-		async.apply(db.deleteObjectField, '2factor:uid:key', uid),
-		async.apply(db.delete, '2factor:uid:' + uid + ':backupCodes'),
-	], callback);
+plugin.disassociate = async (uid) => {
+	await Promise.all([
+		db.deleteObjectField('2factor:uid:key', uid),
+		db.delete(`2factor:uid:${uid}:backupCodes`),
+	]);
+
+	// Clear U2F keys
+	const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
+	await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
+	await db.delete(`2factor:webauthn:${uid}`);
 };
 
 plugin.check = async ({ req, res }) => {
@@ -179,7 +288,7 @@ plugin.check = async ({ req, res }) => {
 		return;
 	}
 
-	const exemptPaths = ['/login/2fa', '/login/2fa/backup'];
+	const exemptPaths = ['/login/2fa', '/login/2fa/backup', '/2factor/u2f/verify'];
 	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
 		return;
 	}
@@ -191,10 +300,10 @@ plugin.check = async ({ req, res }) => {
 
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
-		routeHelpers.redirect(res, '/login/2fa?next=' + redirect);
+		controllerHelpers.redirect(res, `/login/2fa?next=${redirect}`);
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
-			routeHelpers.redirect(res, '/me/2factor?next=' + redirect);
+			controllerHelpers.redirect(res, `/me/2factor?next=${redirect}`);
 		}
 	}
 
@@ -229,7 +338,7 @@ plugin.getUsers = function (callback) {
 };
 
 plugin.updateTitle = function (data, callback) {
-	translator.translate('[[2factor:title]]', function (title) {
+	translator.translate('[[2factor:title]]', (title) => {
 		if (data.templateData.url.match(/user\/.+\/2factor/)) {
 			data.templateData.title = title;
 		}
@@ -241,7 +350,7 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
-		routeHelpers.redirect(res, '/login/2fa?next=' + req.session.returnTo);
+		controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
 	}
 };
 
@@ -253,21 +362,18 @@ plugin.integrations.writeApi = async (data) => {
 	const uid = uidMatch ? parseInt(uidMatch[1], 10) : 0;
 
 	// Enforce 2FA on token generation route
-	if (data.method === 'POST' && routeTest.test(data.route) && await plugin.hasKey(uid)) {
+	if (data.method === 'POST' && routeTest.test(data.route) && await plugin.hasTotp(uid)) {
 		if (!data.req.headers.hasOwnProperty('x-two-factor-authentication')) {
 			// No 2FA received
 			return data.res.status(400).json(data.errorHandler.generate(
-				400, '2fa-enabled',
-				'Two Factor Authentication is enabled for this route, please send in the appropriate additional header for authorization',
-				['x-two-factor-authentication']
+				400, '2fa-enabled', 'Two Factor Authentication is enabled for this route, please send in the appropriate additional header for authorization', ['x-two-factor-authentication']
 			));
 		}
 
 		const skew = notp.totp.verify(data.req.headers['x-two-factor-authentication'], await plugin.get(uid));
 		if (!skew || Math.abs(skew.delta) > 2) {
 			return data.res.status(400).json(data.errorHandler.generate(
-				401, '2fa-failed',
-				'The Two-Factor Authentication code provided is not correct or has expired'
+				401, '2fa-failed', 'The Two-Factor Authentication code provided is not correct or has expired'
 			));
 		}
 	}

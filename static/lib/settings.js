@@ -1,20 +1,21 @@
 'use strict';
 
-/* global define, ajaxify, socket, app, bootbox, $, config */
+/* globals webauthnJSON */
 
-define('forum/account/2factor', ['translator', 'benchpress'], function (translator, bch) {
+define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], function (translator, bch, api, alerts) {
 	var Settings = {};
 
 	Settings.init = function () {
 		if (ajaxify.data.showSetup) {
-			$('button[data-action="regenerate"]').on('click', Settings.beginSetup);
+			$('button[data-action="regenerateTOTP"]').on('click', Settings.setupTotp);
+			$('button[data-action="regenerateU2F"]').on('click', Settings.setupAuthn);
 		} else {
 			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
 			$('button[data-action="generateBackupCodes"]').on('click', Settings.generateBackupCodes);
 		}
 	};
 
-	Settings.beginSetup = function () {
+	Settings.setupTotp = function () {
 		socket.emit('plugins.2factor.regenerate', function (err, data) {
 			if (err) {
 				return app.alertError(err);
@@ -32,12 +33,12 @@ define('forum/account/2factor', ['translator', 'benchpress'], function (translat
 						var codeEl = modal.find('.2fa-confirm');
 
 						confirmEl.on('click', function () {
-							Settings.completeSetup(data.key, codeEl.val(), modal);
+							Settings.verifyTotp(data.key, codeEl.val(), modal);
 						});
 
 						formEl.on('submit', function (e) {
 							e.preventDefault();
-							Settings.completeSetup(data.key, codeEl.val(), modal);
+							Settings.verifyTotp(data.key, codeEl.val(), modal);
 						});
 
 						modal.on('shown.bs.modal', function () {
@@ -49,7 +50,36 @@ define('forum/account/2factor', ['translator', 'benchpress'], function (translat
 		});
 	};
 
-	Settings.completeSetup = function (key, token, modal) {
+	Settings.setupAuthn = function () {
+		this.classList.add('disabled');
+		const modal = bootbox.dialog({
+			message: '[[2factor:u2f.modal.content]]',
+			closeButton: false,
+			className: 'text-center',
+		});
+		api.get('/plugins/2factor/u2f/register', {}).then(async (request) => {
+			try {
+				const response = await webauthnJSON.create({
+					publicKey: request,
+				});
+				modal.modal('hide');
+
+				api.post('/plugins/2factor/u2f/register', response).then(() => {
+					ajaxify.refresh();
+					alerts.success('[[2factor:u2f.success]]');
+				}).catch(alerts.error);
+			} catch (e) {
+				modal.modal('hide');
+				this.classList.remove('disabled');
+				alerts.alert({
+					message: '[[2factor:u2f.error]]',
+					timeout: 2500,
+				});
+			}
+		});
+	};
+
+	Settings.verifyTotp = function (key, token, modal) {
 		socket.emit('plugins.2factor.confirm', {
 			key: key,
 			token: token,
