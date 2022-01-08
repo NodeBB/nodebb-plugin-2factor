@@ -13,6 +13,11 @@ define('forum/login-2factor', ['api', 'alerts'], function (api, alerts) {
 				});
 
 				api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
+					const iconEl = document.getElementById('statusIcon');
+					iconEl.classList.remove('fa-spinner');
+					iconEl.classList.remove('fa-spin');
+					iconEl.classList.add('fa-check');
+					iconEl.classList.add('text-success');
 					document.location = next;
 				}).catch((err) => {
 					alerts.error(err);

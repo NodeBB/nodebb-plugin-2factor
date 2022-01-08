@@ -12,7 +12,7 @@
 				<!-- ENDIF error -->
 
 				{{{ if authnOptions }}}
-					<p class="lead text-center">[[2factor:authn.login.lead]]<br /><br /><i class="fa fa-spinner fa-spin"></i></p>
+					<p class="lead text-center">[[2factor:authn.login.lead]]<br /><br /><i id="statusIcon" class="fa fa-spinner fa-spin"></i></p>
 					<p>[[2factor:authn.login.info]]</p>
 				{{{ else }}}
 					<p>
