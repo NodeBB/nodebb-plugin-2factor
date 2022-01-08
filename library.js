@@ -83,7 +83,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		middleware.ensureLoggedIn,
 	];
 
-	routeHelpers.setupApiRoute(router, 'get', '/2factor/u2f/register', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/authn/register', middlewares, async (req, res) => {
 		const registrationRequest = await plugin._f2l.attestationOptions();
 		registrationRequest.user = {
 			id: base64url(String(req.uid)),
@@ -95,7 +95,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res, registrationRequest);
 	});
 
-	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/register', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/register', middlewares, async (req, res) => {
 		const attestationExpectations = {
 			challenge: req.session.registrationRequest.challenge,
 			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
@@ -109,7 +109,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	});
 
 	// Note: auth request generated in Controllers.renderLogin
-	routeHelpers.setupApiRoute(router, 'post', '/2factor/u2f/verify', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/verify', middlewares, async (req, res) => {
 		const prevCounter = await plugin.getAuthnCount(req.body.authResponse.id);
 		const publicKey = await plugin.getAuthnPublicKey(req.uid, req.body.authResponse.id);
 		const expectations = {
@@ -288,7 +288,7 @@ plugin.check = async ({ req, res }) => {
 		return;
 	}
 
-	const exemptPaths = ['/login/2fa', '/login/2fa/backup', '/2factor/u2f/verify'];
+	const exemptPaths = ['/login/2fa', '/login/2fa/backup', '/2factor/authn/verify'];
 	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
 		return;
 	}

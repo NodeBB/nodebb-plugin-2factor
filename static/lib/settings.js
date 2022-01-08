@@ -53,26 +53,26 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 	Settings.setupAuthn = function () {
 		this.classList.add('disabled');
 		const modal = bootbox.dialog({
-			message: '[[2factor:u2f.modal.content]]',
+			message: '[[2factor:authn.modal.content]]',
 			closeButton: false,
 			className: 'text-center',
 		});
-		api.get('/plugins/2factor/u2f/register', {}).then(async (request) => {
+		api.get('/plugins/2factor/authn/register', {}).then(async (request) => {
 			try {
 				const response = await webauthnJSON.create({
 					publicKey: request,
 				});
 				modal.modal('hide');
 
-				api.post('/plugins/2factor/u2f/register', response).then(() => {
+				api.post('/plugins/2factor/authn/register', response).then(() => {
 					ajaxify.refresh();
-					alerts.success('[[2factor:u2f.success]]');
+					alerts.success('[[2factor:authn.success]]');
 				}).catch(alerts.error);
 			} catch (e) {
 				modal.modal('hide');
 				this.classList.remove('disabled');
 				alerts.alert({
-					message: '[[2factor:u2f.error]]',
+					message: '[[2factor:authn.error]]',
 					timeout: 2500,
 				});
 			}

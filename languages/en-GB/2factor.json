@@ -25,12 +25,12 @@
 	"generate.safety.text": "For security purposes, the QR code will only be shown here. In the event your device is lost or is otherwise unavailable, you will not be able to log into NodeBB unless 2FA is deactivated on your account.",
 	"generate.success": "Successfully enabled Two-Factor Authentication!",
 
-	"u2f.modal.content": "A request to register your hardware key has been sent, please authenticate by activating the key now<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
-	"u2f.error": "Hardware key registration aborted.",
-	"u2f.success": "Hardware key successfully registered.",
-	"u2f.login.lead": "Please activate your hardware key now.",
-	"u2f.login.info": "This account is protected by two-factor authentication via a physical key. If you own the key for this account, please activate it now by pressing the button on the key.",
-	"u2f.login.error": "We cannot validate the integrity of this key, please use a backup code to log in, and re-register this key with your account.",
+	"authn.modal.content": "A request to register your hardware key has been sent, please authenticate by activating the key now<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
+	"authn.error": "Hardware key registration aborted.",
+	"authn.success": "Hardware key successfully registered.",
+	"authn.login.lead": "Please activate your hardware key now.",
+	"authn.login.info": "This account is protected by two-factor authentication via a physical key. If you own the key for this account, please activate it now by pressing the button on the key.",
+	"authn.login.error": "We cannot validate the integrity of this key, please use a backup code to log in, and re-register this key with your account.",
 
 	"disable.confirm": "Are you sure you wish to disable Two-Factor Authentication?",
 

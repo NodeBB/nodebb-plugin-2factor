@@ -12,8 +12,8 @@
 				<!-- ENDIF error -->
 
 				{{{ if authnOptions }}}
-					<p class="lead text-center">[[2factor:u2f.login.lead]]<br /><br /><i class="fa fa-spinner fa-spin"></i></p>
-					<p>[[2factor:u2f.login.info]]</p>
+					<p class="lead text-center">[[2factor:authn.login.lead]]<br /><br /><i class="fa fa-spinner fa-spin"></i></p>
+					<p>[[2factor:authn.login.info]]</p>
 				{{{ else }}}
 					<p>
 						[[2factor:login.text]]

@@ -12,7 +12,7 @@ define('forum/login-2factor', ['api', 'alerts'], function (api, alerts) {
 					publicKey: ajaxify.data.authnOptions,
 				});
 
-				api.post(`/plugins/2factor/u2f/verify${document.location.search}`, { authResponse }).then(({ next }) => {
+				api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
 					document.location = next;
 				}).catch((err) => {
 					alerts.error(err);
