@@ -19,6 +19,8 @@ const routeHelpers = require.main.require('./src/routes/helpers');
 const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
+const atob = base64str => Buffer.from(base64str, 'base64').toString('utf8');
+
 const plugin = {
 	_f2l: undefined,
 };
