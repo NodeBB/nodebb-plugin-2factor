@@ -2,14 +2,20 @@
 
 /* globals webauthnJSON */
 
-define('forum/login-2factor', ['api', 'alerts'], function (api, alerts) {
+define('forum/login-2factor', ['api', 'alerts', 'hooks'], function (api, alerts, hooks) {
 	var Plugin = {};
 
 	Plugin.init = async () => {
 		if (ajaxify.data.authnOptions) {
 			try {
+				const abortController = new AbortController();
+				hooks.on('action:ajaxify.start', () => {
+					abortController.abort();
+				});
+
 				const authResponse = await webauthnJSON.get({
 					publicKey: ajaxify.data.authnOptions,
+					signal: abortController.signal,
 				});
 
 				api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
@@ -24,7 +30,19 @@ define('forum/login-2factor', ['api', 'alerts'], function (api, alerts) {
 					ajaxify.refresh();
 				});
 			} catch (e) {
-				console.log(e);
+				if (e.code !== 20) { // 20 is user canceled
+					alerts.alert({
+						title: '[[2factor:title]]',
+						message: e.message,
+						timeout: 2500,
+					});
+				}
+
+				const iconEl = document.getElementById('statusIcon');
+				iconEl.classList.remove('fa-spinner');
+				iconEl.classList.remove('fa-spin');
+				iconEl.classList.add('fa-times');
+				iconEl.classList.add('text-danger');
 			}
 		} else {
 			$('input#code').focus();
