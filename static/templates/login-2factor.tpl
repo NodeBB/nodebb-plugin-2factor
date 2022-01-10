@@ -25,12 +25,14 @@
 						</div>
 						<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
 						<button class="btn btn-block btn-primary text-center" type="submit">[[2factor:login.verify]]</button>
-						<hr />
-						<p class="text-center">
-							<a href="{config.relative_path}/login/2fa/backup"><i class="fa fa-life-ring"></i> [[2factor:login.use_backup]]</a>
-						</p>
 					</form>
 				{{{ end }}}
+
+				<hr />
+
+				<p class="text-center">
+					<a href="{config.relative_path}/login/2fa/backup"><i class="fa fa-life-ring"></i> [[2factor:login.use_backup]]</a>
+				</p>
 			</div>
 		</div>
 	</div>
