@@ -107,6 +107,8 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
 		plugin.saveAuthn(req.uid, regResult.authnrData);
 		delete req.session.registrationRequest;
+		req.session.tfa = true; // eliminate re-challenge on registration
+
 		helpers.formatApiResponse(200, res);
 	});
 

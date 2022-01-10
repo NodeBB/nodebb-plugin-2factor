@@ -65,8 +65,8 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 				modal.modal('hide');
 
 				api.post('/plugins/2factor/authn/register', response).then(() => {
-					ajaxify.refresh();
 					alerts.success('[[2factor:authn.success]]');
+					setTimeout(document.location.reload, 1000);
 				}).catch(alerts.error);
 			} catch (e) {
 				modal.modal('hide');
