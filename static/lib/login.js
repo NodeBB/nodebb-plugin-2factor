@@ -18,7 +18,7 @@ define('forum/login-2factor', ['api', 'alerts'], function (api, alerts) {
 					iconEl.classList.remove('fa-spin');
 					iconEl.classList.add('fa-check');
 					iconEl.classList.add('text-success');
-					document.location = next;
+					document.location = config.relative_path + next;
 				}).catch((err) => {
 					alerts.error(err);
 					ajaxify.refresh();
