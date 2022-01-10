@@ -36,4 +36,4 @@ Install the plugin via the ACP/Plugins page.
 
 ![Keeb.it logo](https://user-images.githubusercontent.com/923011/148803741-3b1f58f8-173e-4024-8260-f1b26b259213.png)
 
-Thanks to @yLothar and the [keeb.it](https://keeb.it/) community for sponsoring WebAuthn and hardware key support.
+Thanks to @yLothar and the [KEEB.it](https://keeb.it/) community for sponsoring WebAuthn and hardware key support.
