@@ -21,15 +21,12 @@
 	"less": [
 		"static/style.less"
 	],
-	"scripts": [
-		"static/lib/login.js",
-		"static/lib/backup-code.js",
-		"static/lib/settings.js",
-		"node_modules/@github/webauthn-json/dist/browser-global/webauthn-json.browser-global.js"
-	],
-	"acpScripts": [
-		"static/lib/admin.js"
-	],
+	"modules": {
+		"../admin/plugins/2factor.js": "./static/lib/admin.js",
+		"../client/login-2factor.js": "./static/lib/login.js",
+		"../client/backup-code-2factor.js": "./static/lib/backup-code.js",
+		"../client/account/2factor.js": "./static/lib/settings.js"
+	},
 	"templates": "static/templates",
 	"languages": "languages",
 	"defaultLang": "en-GB"
