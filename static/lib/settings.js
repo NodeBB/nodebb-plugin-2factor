@@ -51,7 +51,8 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 	};
 
 	Settings.setupAuthn = function () {
-		this.classList.add('disabled');
+		const self = this;
+		self.classList.add('disabled');
 		const modal = bootbox.dialog({
 			message: '[[2factor:authn.modal.content]]',
 			closeButton: false,
@@ -66,11 +67,11 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 
 				api.post('/plugins/2factor/authn/register', response).then(() => {
 					alerts.success('[[2factor:authn.success]]');
-					setTimeout(document.location.reload, 1000);
+					setTimeout(document.location.reload.bind(document.location), 1000);
 				}).catch(alerts.error);
 			} catch (e) {
 				modal.modal('hide');
-				this.classList.remove('disabled');
+				self.classList.remove('disabled');
 				alerts.alert({
 					message: '[[2factor:authn.error]]',
 					timeout: 2500,
