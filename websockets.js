@@ -40,7 +40,7 @@ Sockets.confirm = function (socket, data, callback) {
 
 	if (confirmed) {
 		parent.save(socket.uid, key, (err) => {
-			socket.req.session.tfa = true; // eliminate re-challenge on registration
+			socket.request.session.tfa = true; // eliminate re-challenge on registration
 
 			callback(err);
 		});
