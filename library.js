@@ -100,7 +100,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/register', middlewares, async (req, res) => {
 		const attestationExpectations = {
 			challenge: req.session.registrationRequest.challenge,
-			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').host}`,
 			factor: 'second',
 		};
 		req.body.rawId = Uint8Array.from(atob(base64url.toBase64(req.body.rawId)), c => c.charCodeAt(0)).buffer;
@@ -118,7 +118,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		const publicKey = await plugin.getAuthnPublicKey(req.uid, req.body.authResponse.id);
 		const expectations = {
 			challenge: req.session.authRequest,
-			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').hostname}`,
+			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').host}`,
 			factor: 'second',
 			publicKey,
 			prevCounter,
