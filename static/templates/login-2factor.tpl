@@ -31,7 +31,7 @@
 				<hr />
 
 				<p class="text-center">
-					<a href="{config.relative_path}/login/2fa/backup"><i class="fa fa-life-ring"></i> [[2factor:login.use_backup]]</a>
+					<a href="{config.relative_path}/login/2fa/backup{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-life-ring"></i> [[2factor:login.use_backup]]</a>
 				</p>
 			</div>
 		</div>
