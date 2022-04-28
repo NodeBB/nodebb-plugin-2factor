@@ -1,13 +1,12 @@
 'use strict';
 
-/* globals webauthnJSON */
-
 define('forum/login-2factor', ['api', 'alerts', 'hooks'], function (api, alerts, hooks) {
 	var Plugin = {};
 
 	Plugin.init = async () => {
 		if (ajaxify.data.authnOptions) {
 			try {
+				const webauthnJSON = await import('@github/webauthn-json');
 				const abortController = new AbortController();
 				hooks.on('action:ajaxify.start', () => {
 					abortController.abort();

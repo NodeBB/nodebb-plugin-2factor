@@ -1,7 +1,5 @@
 'use strict';
 
-/* globals webauthnJSON */
-
 define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], function (translator, bch, api, alerts) {
 	var Settings = {};
 
@@ -60,6 +58,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 		});
 		api.get('/plugins/2factor/authn/register', {}).then(async (request) => {
 			try {
+				const webauthnJSON = await import('@github/webauthn-json');
 				const response = await webauthnJSON.create({
 					publicKey: request,
 				});
