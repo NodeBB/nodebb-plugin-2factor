@@ -25,6 +25,12 @@
 	"generate.safety.text": "For security purposes, the QR code will only be shown here. In the event your device is lost or is otherwise unavailable, you will not be able to log into NodeBB unless 2FA is deactivated on your account.",
 	"generate.success": "Successfully enabled Two-Factor Authentication!",
 
+	"choices.lead": "Please select the second-factor method you wish to authenticate with.",
+	"choices.back": "Back to choices",
+	"choices.authn": "Hardware key (e.g. Yubikey, Titan, etc.)",
+	"choices.totp": "Authenticator App (e.g. Google Authenticator, Authy, FreeOTP, etc.)",
+	"choices.backupCode": "Use a backup code",
+
 	"authn.modal.content": "A request to register your hardware key has been sent, please authenticate by activating the key now<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
 	"authn.error": "Hardware key registration aborted.",
 	"authn.success": "Hardware key successfully registered.",

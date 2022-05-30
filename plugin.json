@@ -23,8 +23,9 @@
 	],
 	"modules": {
 		"../admin/plugins/2factor.js": "./static/lib/admin.js",
-		"../client/login-2factor.js": "./static/lib/login.js",
-		"../client/backup-code-2factor.js": "./static/lib/backup-code.js",
+		"../client/login-totp.js": "./static/lib/totp.js",
+		"../client/login-authn.js": "./static/lib/authn.js",
+		"../client/login-backup.js": "./static/lib/backup.js",
 		"../client/account/2factor.js": "./static/lib/settings.js"
 	},
 	"templates": "static/templates",
