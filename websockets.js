@@ -6,7 +6,7 @@ const qrcode = require('qrcode');
 
 const user = require.main.require('./src/user');
 const nconf = require.main.require('nconf');
-const utils = require.main.require('./public/src/utils');
+const utils = require.main.require('./src/utils');
 const meta = require.main.require('./src/meta');
 
 const parent = module.parent.exports;
