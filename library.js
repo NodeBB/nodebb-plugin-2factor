@@ -39,13 +39,15 @@ plugin.init = function (params, callback) {
 	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, [hostMiddleware.requireUser, hostMiddleware.exposeUid], controllers.renderSettings);
 
 	// 2fa Login
-	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderLogin);
-	router.post('/login/2fa', hostMiddleware.ensureLoggedIn, controllers.processLogin, (req, res) => {
+	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
+	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
+	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
 		req.session.tfa = true;
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
+	hostHelpers.setupPageRoute(router, '/login/2fa/authn', [hostMiddleware.ensureLoggedIn], controllers.renderAuthnChallenge);
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
@@ -205,6 +207,7 @@ plugin.hasAuthn = async uid => db.exists(`2factor:webauthn:${uid}`);
 
 plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
 
+// hmm... remove?
 plugin.hasKey = async (uid) => {
 	const [hasTotp, hasAuthn] = await Promise.all([
 		db.isObjectField('2factor:uid:key', uid),
@@ -213,6 +216,8 @@ plugin.hasKey = async (uid) => {
 
 	return hasTotp || hasAuthn;
 };
+
+plugin.hasBackupCodes = async uid => db.exists(`2factor:uid:${uid}:backupCodes`);
 
 plugin.generateBackupCodes = function (uid, callback) {
 	const set = `2factor:uid:${uid}:backupCodes`;
@@ -292,7 +297,7 @@ plugin.check = async ({ req, res }) => {
 		return;
 	}
 
-	const exemptPaths = ['/login/2fa', '/login/2fa/backup', '/2factor/authn/verify'];
+	const exemptPaths = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify'];
 	if (exemptPaths.some(path => req.path === path || req.path === `/api${path}`)) {
 		return;
 	}
