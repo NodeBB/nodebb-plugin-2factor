@@ -4,13 +4,14 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 	var Settings = {};
 
 	Settings.init = function () {
-		if (ajaxify.data.showSetup) {
-			$('button[data-action="regenerateTOTP"]').on('click', Settings.setupTotp);
-			$('button[data-action="regenerateU2F"]').on('click', Settings.setupAuthn);
-		} else {
-			$('button[data-action="disassociate"]').on('click', Settings.disassociate);
-			$('button[data-action="generateBackupCodes"]').on('click', Settings.generateBackupCodes);
-		}
+		document.querySelector('#content .list-group').addEventListener('click', (e) => {
+			if (!e.target.closest('[data-action]') || Array.from(e.target.classList).includes('text-muted')) {
+				return;
+			}
+
+			const action = e.target.getAttribute('data-action');
+			Settings[action].call(e.target);
+		});
 	};
 
 	Settings.setupTotp = function () {
@@ -48,9 +49,29 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 		});
 	};
 
+	Settings.disableTotp = () => {
+		translator.translate('[[2factor:user.manage.disableTotp]]', function (disableText) {
+			bootbox.confirm(disableText, function (confirm) {
+				if (confirm) {
+					api.delete('/plugins/2factor/totp').then(ajaxify.refresh).catch(app.alertError);
+				}
+			});
+		});
+	};
+
+	Settings.disableAuthn = () => {
+		translator.translate('[[2factor:user.manage.disableAuthn]]', function (disableText) {
+			bootbox.confirm(disableText, function (confirm) {
+				if (confirm) {
+					api.delete('/plugins/2factor/authn').then(ajaxify.refresh).catch(app.alertError);
+				}
+			});
+		});
+	};
+
 	Settings.setupAuthn = function () {
 		const self = this;
-		self.classList.add('disabled');
+		self.classList.add('text-muted');
 		const modal = bootbox.dialog({
 			message: '[[2factor:authn.modal.content]]',
 			closeButton: false,
@@ -95,22 +116,6 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 				var inputEl = modal.find('.2fa-confirm');
 				inputEl.parent().addClass('has-error');
 			}
-		});
-	};
-
-	Settings.disassociate = function () {
-		translator.translate('[[2factor:disable.confirm]]', function (disableText) {
-			bootbox.confirm(disableText, function (confirm) {
-				if (confirm) {
-					socket.emit('plugins.2factor.disassociate', function (err) {
-						if (err) {
-							return app.alertError(err.message);
-						}
-
-						ajaxify.refresh();
-					});
-				}
-			});
 		});
 	};
 

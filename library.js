@@ -144,6 +144,21 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			next: req.query.next || '/',
 		});
 	});
+
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', middlewares, async (req, res) => {
+		const { uid } = req;
+		const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
+		await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
+		await db.delete(`2factor:webauthn:${uid}`);
+
+		helpers.formatApiResponse(200, res);
+	});
+
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', middlewares, async (req, res) => {
+		await db.deleteObjectField('2factor:uid:key', req.uid);
+
+		helpers.formatApiResponse(200, res);
+	});
 };
 
 plugin.addAdminNavigation = function (header, callback) {
@@ -218,6 +233,8 @@ plugin.hasKey = async (uid) => {
 };
 
 plugin.hasBackupCodes = async uid => db.exists(`2factor:uid:${uid}:backupCodes`);
+
+plugin.countBackupCodes = async uid => db.setCount(`2factor:uid:${uid}:backupCodes`);
 
 plugin.generateBackupCodes = function (uid, callback) {
 	const set = `2factor:uid:${uid}:backupCodes`;
