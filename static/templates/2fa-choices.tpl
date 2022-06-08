@@ -10,17 +10,17 @@
 				<ul class="list-group">
 					{{{ if hasAuthn }}}
 						<li class="list-group-item">
-							<a href="{config.relative_path}/login/2fa/authn"><i class="fa fa-fw fa-key"></i> [[2factor:choices.authn]]</a>
+							<a href="{config.relative_path}/login/2fa/authn{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-fw fa-key"></i> [[2factor:choices.authn]]</a>
 						</li>
 					{{{ end }}}
 					{{{ if hasTotp }}}
 						<li class="list-group-item">
-							<a href="{config.relative_path}/login/2fa/totp"><i class="fa fa-fw fa-mobile"></i> [[2factor:choices.totp]]</a>
+							<a href="{config.relative_path}/login/2fa/totp{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-fw fa-mobile"></i> [[2factor:choices.totp]]</a>
 						</li>
 					{{{ end }}}
 					{{{ if hasBackupCodes }}}
 						<li class="list-group-item">
-							<a href="{config.relative_path}/login/2fa/backup"><i class="fa fa-fw fa-life-ring"></i> [[2factor:choices.backupCode]]</a>
+							<a href="{config.relative_path}/login/2fa/backup{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-fw fa-life-ring"></i> [[2factor:choices.backupCode]]</a>
 						</li>
 					{{{ end }}}
 				</ul>
