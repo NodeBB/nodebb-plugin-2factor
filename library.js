@@ -318,8 +318,8 @@ plugin.check = async ({ req, res }) => {
 	const exemptPaths = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify', '/register/complete'];
 	const exemptPrefixes = ['/api/v3/'];
 	if (
-		exemptPaths.some(path => requestPath === path || requestPath === `/api${path}`) ||
-		exemptPrefixes.some(prefix => requestPath.startsWith(prefix))
+		exemptPaths.some(path => requestPath === nconf.get('relative_path') + path || requestPath === `${nconf.get('relative_path')}/api${path}`) ||
+		exemptPrefixes.some(prefix => requestPath.startsWith(nconf.get('relative_path') + prefix))
 	) {
 		return;
 	}
@@ -327,7 +327,9 @@ plugin.check = async ({ req, res }) => {
 	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
 	tfaEnforcedGroups = JSON.parse(tfaEnforcedGroups || '[]');
 
-	const redirect = requestPath.replace('/api', '');
+	const redirect = requestPath
+		.replace('/api', '')
+		.replace(nconf.get('relative_path'), '');
 
 	if (await plugin.hasKey(req.user.uid)) {
 		// Account has TFA, redirect to login
