@@ -17,7 +17,7 @@
 
 				<form role="form" method="post">
 					<div class="mb-3 input-group">
-						<input type="text" class="form-control form-control-large text-center" id="code" name="code" autocomplete="off" />
+						<input type="text" inputmode="numeric" class="form-control form-control-large text-center" id="code" name="code" autocomplete="off" />
 						<button class="btn btn-block btn-primary text-center" type="submit">[[2factor:login.verify]]</button>
 					</div>
 					<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
