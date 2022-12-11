@@ -89,10 +89,11 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 
 	routeHelpers.setupApiRoute(router, 'get', '/2factor/authn/register', middlewares, async (req, res) => {
 		const registrationRequest = await plugin._f2l.attestationOptions();
+		const userData = await user.getUserFields(req.uid, ['username', 'displayname']);
 		registrationRequest.user = {
 			id: base64url(String(req.uid)),
-			name: 'foobar',
-			displayName: 'foobar',
+			name: userData.username,
+			displayName: userData.displayname,
 		};
 		registrationRequest.challenge = base64url(registrationRequest.challenge);
 		req.session.registrationRequest = registrationRequest;
