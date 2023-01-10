@@ -310,6 +310,17 @@ plugin.disassociate = async (uid) => {
 	await db.delete(`2factor:webauthn:${uid}`);
 };
 
+plugin.overrideUid = async ({ req, locals }) => {
+	if (req.uid && await plugin.hasKey(req.uid) && req.session.tfa !== true) {
+		locals['2factor'] = req.uid;
+		req.uid = 0;
+		delete req.user;
+		delete req.loggedIn;
+	}
+
+	return { req, locals };
+};
+
 plugin.check = async ({ req, res }) => {
 	if (!req.user || req.session.tfa === true) {
 		return;
@@ -317,10 +328,10 @@ plugin.check = async ({ req, res }) => {
 
 	const requestPath = req.baseUrl + req.path;
 	const exemptPaths = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify', '/register/complete'];
-	const exemptPrefixes = ['/api/v3/'];
 	if (
-		exemptPaths.some(path => requestPath === nconf.get('relative_path') + path || requestPath === `${nconf.get('relative_path')}/api${path}`) ||
-		exemptPrefixes.some(prefix => requestPath.startsWith(nconf.get('relative_path') + prefix))
+		exemptPaths.some(path => requestPath === nconf.get('relative_path') + path ||
+			requestPath === `${nconf.get('relative_path')}/api${path}` ||
+			requestPath === `${nconf.get('relative_path')}/api/v3/plugins${path}`)
 	) {
 		return;
 	}
@@ -333,8 +344,12 @@ plugin.check = async ({ req, res }) => {
 		.replace(nconf.get('relative_path'), '');
 
 	if (await plugin.hasKey(req.user.uid)) {
-		// Account has TFA, redirect to login
-		controllerHelpers.redirect(res, `/login/2fa?next=${redirect}`);
+		if (!res.locals.isAPI) {
+			// Account has TFA, redirect to login
+			controllerHelpers.redirect(res, `/login/2fa?next=${redirect}`);
+		} else {
+			await controllerHelpers.formatApiResponse(401, res, new Error('[[2factor:second-factor-required]]'));
+		}
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
 			controllerHelpers.redirect(res, `/me/2factor?next=${redirect}`);
