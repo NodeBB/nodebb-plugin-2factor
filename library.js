@@ -28,6 +28,13 @@ const plugin = {
 plugin.init = function (params, callback) {
 	const { router } = params;
 	const hostMiddleware = params.middleware;
+	const accountMiddlewares = [
+		hostMiddleware.exposeUid,
+		hostMiddleware.ensureLoggedIn,
+		hostMiddleware.canViewUsers,
+		hostMiddleware.checkAccountPermissions,
+		hostMiddleware.buildAccountData,
+	];
 	const hostHelpers = require.main.require('./src/routes/helpers');
 	const controllers = require('./lib/controllers');
 	const middlewares = require('./lib/middlewares');
@@ -36,7 +43,7 @@ plugin.init = function (params, callback) {
 	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', hostMiddleware, [hostMiddleware.pluginHooks], controllers.renderAdminPage);
 
 	// UCP
-	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, [hostMiddleware.requireUser, hostMiddleware.exposeUid], controllers.renderSettings);
+	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, accountMiddlewares, controllers.renderSettings);
 
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
@@ -384,15 +391,6 @@ plugin.getUsers = function (callback) {
 			user.getUsersFields(uids, ['username', 'userslug', 'picture'], next);
 		},
 	], callback);
-};
-
-plugin.updateTitle = function (data, callback) {
-	translator.translate('[[2factor:title]]', (title) => {
-		if (data.templateData.url.match(/user\/.+\/2factor/)) {
-			data.templateData.title = title;
-		}
-		callback(null, data);
-	});
 };
 
 plugin.adjustRelogin = async ({ req, res }) => {
