@@ -40,13 +40,13 @@ plugin.init = function (params, callback) {
 	const middlewares = require('./lib/middlewares');
 
 	// ACP
-	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', hostMiddleware, [hostMiddleware.pluginHooks], controllers.renderAdminPage);
+	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', [hostMiddleware.pluginHooks], controllers.renderAdminPage);
 
 	// UCP
-	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', hostMiddleware, accountMiddlewares, controllers.renderSettings);
+	hostHelpers.setupPageRoute(router, '/user/:userslug/2factor', accountMiddlewares, controllers.renderSettings);
 
 	// 2fa Login
-	hostHelpers.setupPageRoute(router, '/login/2fa', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
+	hostHelpers.setupPageRoute(router, '/login/2fa', [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
 	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
 	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
 		req.session.tfa = true;
@@ -57,7 +57,7 @@ plugin.init = function (params, callback) {
 	hostHelpers.setupPageRoute(router, '/login/2fa/authn', [hostMiddleware.ensureLoggedIn], controllers.renderAuthnChallenge);
 
 	// 2fa backups codes
-	hostHelpers.setupPageRoute(router, '/login/2fa/backup', hostMiddleware, [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
+	hostHelpers.setupPageRoute(router, '/login/2fa/backup', [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
 	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
