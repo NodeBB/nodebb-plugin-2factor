@@ -1,8 +1,6 @@
 'use strict';
 
-/* global $, app, socket, define, bootbox, ajaxify */
-
-define('admin/plugins/2factor', ['settings', 'autocomplete'], function (Settings, autocomplete) {
+define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts'], function (Settings, autocomplete, alerts) {
 	var ACP = {};
 
 	ACP.init = function () {
@@ -10,7 +8,7 @@ define('admin/plugins/2factor', ['settings', 'autocomplete'], function (Settings
 
 		$('#save').on('click', function () {
 			Settings.save('2factor', $('.2factor-settings'), function () {
-				app.alert({
+				alerts.alert({
 					type: 'success',
 					alert_id: '2factor-saved',
 					title: 'Settings Saved',
@@ -32,7 +30,7 @@ define('admin/plugins/2factor', ['settings', 'autocomplete'], function (Settings
 						uid: uid,
 					}, function (err) {
 						if (!err) {
-							app.alertSuccess('Deactivated 2FA for ' + username);
+							alerts.success('Deactivated 2FA for ' + username);
 							ajaxify.refresh();
 						}
 					});
