@@ -9,7 +9,7 @@
 	"notification.backupCode.used": "È stato appena utilizzato un codice di backup per accedere a questo account",
 
 	"user.intro.one": "Oltre all'autenticazione classica tramite username/password o SSO, è possibile configurare un secondo livello di protezione, viene consentito l'accesso solo se viene fornita la one-time password, solitamente generata tramite un dispositivo mobile.",
-	"user.intro.two": "Per abilitare l'autenticazione a due fattori, fare clic sul pulsante in basso al fine di generare un token per NodeBB. Successivamente, scansiona con il tuo dispositivo mobile, tramite GAuthenticator (o un'altra app simile). Infine, conferma l'impostazione inserendo nella scermata di conferma la password generata.",
+	"user.intro.two": "Per abilitare l'autenticazione a due fattori, fare clic sul pulsante in basso al fine di generare un token per NodeBB. Successivamente, scansiona con il tuo dispositivo mobile, tramite Authenticator (o un'altra app simile). Infine, conferma l'impostazione inserendo nella scermata di conferma la password generata.",
 	"user.intro.three": "Una volta configurato, il login non sarà confermato fino a quando non viene fornita sia la password che il token generato.",
 	"user.settings.title": "Impostazioni autenticazione a due fattori",
 	"user.settings.enable": "Abilita autenticazione a due fattori",
@@ -18,7 +18,8 @@
 	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
 	"generate.title": "Genera Token &amp; Configura dispositivo",
-	"generate.text": "Il codice QR mostrato in precedenza consentirà di associare il tuo dispositivo mobile (tramite l'app GAuthenticator o una variante appropriata) con il tuo account su questo sito. È sufficiente scansionarlo tramite l'app e digitare il token generato per confermare.",
+	"generate.text": "Il codice QR mostrato in precedenza consentirà di associare il tuo dispositivo mobile (tramite l'app Authenticator o una variante appropriata) con il tuo account su questo sito. È sufficiente scansionarlo tramite l'app e digitare il token generato per confermare.",
+	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "Mantieni questo token al sicuro! Altri possono utilizzarlo per registrare i propri dispositivi con il tuo account.",
 	"generate.safety.text": "Per scopi di sicurezza, il QR code verrà mostrato solo qui. Nel caso in cui il tuo dispositivo venga perso o non sia a te disponibile, non sarai in grado di accedere a NodeBB a meno che non disattivi 2FA dal tuo account.",
 	"generate.success": "Doppia autenticazione abilitata con successo!",

@@ -19,6 +19,7 @@
 
 	"generate.title": "Wygeneruj tymczasowy kod &amp; Skonfiguruj urządzenie",
 	"generate.text": "Powyższy kod QR pozwoli ci skojarzyć Twoje urządzenie mobilne (za pośrednictwem aplikacji Google Authenticator lub odpowiedniego wariantu) z Twoim kontem na tej stronie. Wystarczy zeskanować go za pomocą aplikacji i wprowadzić wygenerowany kod w celu potwierdzenia.",
+	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "Zachowaj ten kod w bezpiecznym miejscu! Inni mogą go użyć do zarejestrowania swoich urządzeń z przy użyciu Twojego konta.",
 	"generate.safety.text": "Ze względów bezpieczeństwa kod QR zostanie wyświetlony tylko tutaj. Jeśli urządzenie zostanie zgubione lub w inny sposób niedostępne, nie będziesz mógł zalogować się na forum dopóki 2FA nie zostanie dezaktywowane na Twoim koncie.",
 	"generate.success": "Pomyślnie włączono weryfikacje dwuetapową dla Twojego konta, gratulacje!",

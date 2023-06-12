@@ -9,7 +9,7 @@
 	"notification.backupCode.used": "Un code de sauvegarde vient d&apos;&ecirc;tre utilis&eacute; pour se connecter &agrave; ce compte",
 
 	"user.intro.one": "En plus de l&apos;authentification r&eacute;guli&egrave;re par nom d&apos;utilisateur / mot de passe ou SSO, une seconde authentification peut être configur&eacute;e, permettant l&apos;acc&egrave;s que si un mot de passe bas&eacute; sur le temps est fourni, g&eacute;n&eacute;ralement g&eacute;n&eacute;r&eacute; / stock&eacute;e sur un appareil mobile.",
-	"user.intro.two": "Pour activer l&apos;authentification &agrave; deux facteurs, cliquez sur le bouton ci-dessous pour g&eacute;n&eacute;rer un jeton pour NodeBB. Une fois g&eacute;n&eacute;r&eacute;, scanner-le dans votre appareil mobile via le GAuthenticator (ou une application similaire). Enfin, confirmer la configuration en entrant le mot de passe bas&eacute; sur le temps dans l&apos;&eacute;cran de confirmation.",
+	"user.intro.two": "Pour activer l&apos;authentification &agrave; deux facteurs, cliquez sur le bouton ci-dessous pour g&eacute;n&eacute;rer un jeton pour NodeBB. Une fois g&eacute;n&eacute;r&eacute;, scanner-le dans votre appareil mobile via le Authenticator (ou une application similaire). Enfin, confirmer la configuration en entrant le mot de passe bas&eacute; sur le temps dans l&apos;&eacute;cran de confirmation.",
 	"user.intro.three": "Une fois la configuration effectu&eacute;e, il faudra fournir le mot de passe et le mot de passe bas&eacute; sur le temps pour vous connecter",
 	"user.settings.title": "Param&egrave;tre de l&apos;authentification &agrave; deux facteurs",
 	"user.settings.enable": "Activer l&apos;authentification &agrave; deux facteurs",
@@ -18,7 +18,8 @@
 	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
 	"generate.title": "G&eacute;n&eacute;rer un jeton &amp; Configur&eacute; le mobile",
-	"generate.text": "Le code QR ci-dessus vous permettra d&apos;associer votre appareil mobile (via l&apos;application GAuthenticator ou une application similaire) avec votre compte sur ce site. Il suffit de le num&eacute;riser via l&apos;application, et de renseigner la cl&eacute; g&eacute;n&eacute;r&eacute;e dans l&apos;application pour confirmer.",
+	"generate.text": "Le code QR ci-dessus vous permettra d&apos;associer votre appareil mobile (via l&apos;application Authenticator ou une application similaire) avec votre compte sur ce site. Il suffit de le num&eacute;riser via l&apos;application, et de renseigner la cl&eacute; g&eacute;n&eacute;r&eacute;e dans l&apos;application pour confirmer.",
+	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "Gardez ce jeton en toute s&eacute;curit&eacute; ! D&apos;autres peuvent l&apos;utiliser pour enregistrer leurs appareils avec votre compte.",
 	"generate.safety.text": "Pour des raisons de s&eacute;curit&eacute;, le code QR ne sera montr&eacute; uniquement sur cette page. Dans le cas où votre mobile n&apos;est plus disponible, vous ne pourrez vous connecter sur ce site sauf si vous d&eacute;sactiver l&apos;authentification &agrave; deux facteurs.",
 	"generate.success": "L&apos;authentification &agrave; deux facteurs est maintenant activ&eacute;",

@@ -9,7 +9,7 @@
 	"notification.backupCode.used": "一个备份代码刚刚被用来登录这个帐号",
 
 	"user.intro.one": "在常规的用户名/密码或单点登录 (SSO) 之外，您还可以为帐号增加第二层安全认证，在此之后，您将需要输入一个基于时间的一次性密码来登录您的帐号。这样的密码通常在您的移动设备上生成和储存。",
-	"user.intro.two": "要启用双因素身份认证，请单击下面的按钮为 NodeBB 生成令牌。 生成后，通过 GAuthenticator （或其他类似的应用程序）将其扫描到您的移动设备。 最后，通过在确认屏幕中输入基于当前时间的密码来完成设置。",
+	"user.intro.two": "要启用双因素身份认证，请单击下面的按钮为 NodeBB 生成令牌。 生成后，通过 Authenticator （或其他类似的应用程序）将其扫描到您的移动设备。 最后，通过在确认屏幕中输入基于当前时间的密码来完成设置。",
 	"user.intro.three": "一旦启用此认证，您在访问您的账号时将需要输入常规密码和一次性密码。",
 	"user.settings.title": "两步认证设置",
 	"user.settings.enable": "启用两步认证",
@@ -18,7 +18,8 @@
 	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
 	"generate.title": "生成令牌并设置设备",
-	"generate.text": "请扫描此二维码（通过 GAuthenticator 应用或其他类似应用）来关联您的移动设备和您在此网站上的帐号，并输入生成的令牌进行确认。",
+	"generate.text": "请扫描此二维码（通过 Authenticator 应用或其他类似应用）来关联您的移动设备和您在此网站上的帐号，并输入生成的令牌进行确认。",
+	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "请不要泄露此二维码！其他人可以以此将您的帐号关联至他们的设备。",
 	"generate.safety.text": "为了安全起见， 如果您的设备丢失或无法使用，您将无法登录 NodeBB ，除非您的帐号停用了 2FA。",
 	"generate.success": "您成功启用了两步认证！",

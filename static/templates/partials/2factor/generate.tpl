@@ -1,10 +1,8 @@
-<div class="row">
-	<div class="col-6">
-		<div class="text-center">
-			<img src="{qr}" />
-		</div>
+<div class="d-flex gap-5 align-items-center">
+	<div class="text-center">
+		<img src="{qr}" />
 	</div>
-	<div class="col-6">
+	<div>
 		<p>
 			[[2factor:generate.text]]
 		</p>
@@ -16,8 +14,9 @@
 		</form>
 	</div>
 </div>
-<div class="text-center mt-3">
-	<p><code>{encodedKey}</code></p>
+<div class="text-center mt-3 pt-3 border-top">
+	<p>[[2factor:generate.manual-entry]]</p>
+	<p class="font-monospace user-select-all text-info">{encodedKey}</p>
 	<p><strong>[[2factor:generate.safety.title]]</strong></p>
 	<p class="help-block">[[2factor:generate.safety.text]]</p>
 </div>

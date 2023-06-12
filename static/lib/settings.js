@@ -1,6 +1,6 @@
 'use strict';
 
-define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], function (translator, bch, api, alerts) {
+define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'bootbox'], function (translator, bch, api, alerts, bootbox) {
 	var Settings = {};
 
 	Settings.init = function () {
@@ -15,36 +15,34 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts'], f
 	};
 
 	Settings.setupTotp = function () {
-		socket.emit('plugins.2factor.regenerate', function (err, data) {
+		socket.emit('plugins.2factor.regenerate', async (err, data) => {
 			if (err) {
 				return app.alertError(err);
 			}
 
-			bch.parse('partials/2factor/generate', data, function (html) {
-				translator.translate(html, function (translatedHTML) {
-					translator.translate('[[2factor:generate.title]]', function (title) {
-						var modal = bootbox.dialog({
-							title: title,
-							message: translatedHTML,
-						});
-						var formEl = modal.find('form');
-						var confirmEl = modal.find('button[data-action="confirm"]');
-						var codeEl = modal.find('.2fa-confirm');
+			const html = await bch.render('partials/2factor/generate', data);
+			const [message, title] = await Promise.all([
+				translator.translate(html),
+				translator.translate('[[2factor:generate.title]]'),
+			]);
+			const size = 'lg';
 
-						confirmEl.on('click', function () {
-							Settings.verifyTotp(data.key, codeEl.val(), modal);
-						});
+			var modal = bootbox.dialog({ title, message, size });
+			var formEl = modal.find('form');
+			var confirmEl = modal.find('button[data-action="confirm"]');
+			var codeEl = modal.find('.2fa-confirm');
 
-						formEl.on('submit', function (e) {
-							e.preventDefault();
-							Settings.verifyTotp(data.key, codeEl.val(), modal);
-						});
+			confirmEl.on('click', function () {
+				Settings.verifyTotp(data.key, codeEl.val(), modal);
+			});
 
-						modal.on('shown.bs.modal', function () {
-							codeEl.focus();
-						});
-					});
-				});
+			formEl.on('submit', function (e) {
+				e.preventDefault();
+				Settings.verifyTotp(data.key, codeEl.val(), modal);
+			});
+
+			modal.on('shown.bs.modal', function () {
+				codeEl.focus();
 			});
 		});
 	};

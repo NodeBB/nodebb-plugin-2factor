@@ -26,7 +26,8 @@
 	"user.manage.disableAuthn": "Are you sure you wish to dissociate your hardware key?",
 
 	"generate.title": "Generate Token &amp; Set up Device",
-	"generate.text": "The QR code shown above will allow you to associate your mobile device (via the GAuthenticator app or a suitable variant) with your account on this website. Simply scan it via the app, and key in the generated token to confirm.",
+	"generate.text": "The QR code shown above will allow you to associate your mobile device (via the Authenticator app or a suitable variant) with your account on this website. Simply scan it via the app, and key in the generated token to confirm.",
+	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "Keep this token safe! Others can use it to register their devices with your account.",
 	"generate.safety.text": "For security purposes, the QR code will only be shown here. In the event your device is lost or is otherwise unavailable, you will not be able to log into NodeBB unless 2FA is deactivated on your account.",
 	"generate.success": "Successfully enabled Two-Factor Authentication!",
