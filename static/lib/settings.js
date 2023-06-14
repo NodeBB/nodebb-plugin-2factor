@@ -1,6 +1,6 @@
 'use strict';
 
-define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'bootbox'], function (translator, bch, api, alerts, bootbox) {
+define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, alerts, bootbox) {
 	var Settings = {};
 
 	Settings.init = function () {
@@ -20,14 +20,10 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 				return alerts.error(err);
 			}
 
-			const html = await bch.render('partials/2factor/generate', data);
-			const [message, title] = await Promise.all([
-				translator.translate(html),
-				translator.translate('[[2factor:generate.title]]'),
-			]);
+			const message = await app.parseAndTranslate('partials/2factor/generate', data);
 			const size = 'lg';
 
-			var modal = bootbox.dialog({ title, message, size });
+			var modal = bootbox.dialog({ title: '[[2factor:generate.title]]', message, size });
 			var formEl = modal.find('form');
 			var confirmEl = modal.find('button[data-action="confirm"]');
 			var codeEl = modal.find('.2fa-confirm');
@@ -48,22 +44,18 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 	};
 
 	Settings.disableTotp = () => {
-		translator.translate('[[2factor:user.manage.disableTotp]]', function (disableText) {
-			bootbox.confirm(disableText, function (confirm) {
-				if (confirm) {
-					api.del('/plugins/2factor/totp').then(ajaxify.refresh).catch(alerts.error);
-				}
-			});
+		bootbox.confirm('[[2factor:user.manage.disableTotp]]', function (confirm) {
+			if (confirm) {
+				api.del('/plugins/2factor/totp').then(ajaxify.refresh).catch(alerts.error);
+			}
 		});
 	};
 
 	Settings.disableAuthn = () => {
-		translator.translate('[[2factor:user.manage.disableAuthn]]', function (disableText) {
-			bootbox.confirm(disableText, function (confirm) {
-				if (confirm) {
-					api.del('/plugins/2factor/authn').then(ajaxify.refresh).catch(alerts.error);
-				}
-			});
+		bootbox.confirm('[[2factor:user.manage.disableAuthn]]', function (confirm) {
+			if (confirm) {
+				api.del('/plugins/2factor/authn').then(ajaxify.refresh).catch(alerts.error);
+			}
 		});
 	};
 
@@ -106,9 +98,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 			if (!err) {
 				modal.modal('hide');
 				ajaxify.refresh();
-				translator.translate('[[2factor:generate.success]]', function (successText) {
-					alerts.success(successText);
-				});
+				alerts.success('[[2factor:generate.success]]');
 			} else {
 				// Probably a bad validation code
 				var inputEl = modal.find('.2fa-confirm');
@@ -124,15 +114,11 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 				'x-csrf-token': config.csrf_token,
 			},
 		}).done(function (data) {
-			bch.parse('partials/2factor/generateBackupCodes', data, function (html) {
-				translator.translate(html, function (translatedHTML) {
-					translator.translate('[[2factor:backup.generate.title]]', function (title) {
-						bootbox.dialog({
-							title: title,
-							message: translatedHTML,
-							onEscape: true,
-						});
-					});
+			app.parseAndTranslate('partials/2factor/generateBackupCodes', data, function (html) {
+				bootbox.dialog({
+					title: '[[2factor:backup.generate.title]]',
+					message: html,
+					onEscape: true,
 				});
 			});
 		});
