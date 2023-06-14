@@ -17,7 +17,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 	Settings.setupTotp = function () {
 		socket.emit('plugins.2factor.regenerate', async (err, data) => {
 			if (err) {
-				return app.alertError(err);
+				return alerts.error(err);
 			}
 
 			const html = await bch.render('partials/2factor/generate', data);
@@ -51,7 +51,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 		translator.translate('[[2factor:user.manage.disableTotp]]', function (disableText) {
 			bootbox.confirm(disableText, function (confirm) {
 				if (confirm) {
-					api.delete('/plugins/2factor/totp').then(ajaxify.refresh).catch(app.alertError);
+					api.del('/plugins/2factor/totp').then(ajaxify.refresh).catch(alerts.error);
 				}
 			});
 		});
@@ -61,7 +61,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 		translator.translate('[[2factor:user.manage.disableAuthn]]', function (disableText) {
 			bootbox.confirm(disableText, function (confirm) {
 				if (confirm) {
-					api.delete('/plugins/2factor/authn').then(ajaxify.refresh).catch(app.alertError);
+					api.del('/plugins/2factor/authn').then(ajaxify.refresh).catch(alerts.error);
 				}
 			});
 		});
@@ -107,7 +107,7 @@ define('forum/account/2factor', ['translator', 'benchpress', 'api', 'alerts', 'b
 				modal.modal('hide');
 				ajaxify.refresh();
 				translator.translate('[[2factor:generate.success]]', function (successText) {
-					app.alertSuccess(successText);
+					alerts.success(successText);
 				});
 			} else {
 				// Probably a bad validation code
