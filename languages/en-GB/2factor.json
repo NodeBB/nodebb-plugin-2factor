@@ -34,6 +34,7 @@
 
 	"choices.lead": "Please select the second-factor method you wish to authenticate with.",
 	"choices.back": "Back to choices",
+	"choices.logout": "Logout",
 	"choices.authn": "Hardware key (e.g. Yubikey, Titan, etc.)",
 	"choices.totp": "Authenticator App (e.g. Google Authenticator, Authy, FreeOTP, etc.)",
 	"choices.backupCode": "Backup code",

@@ -24,6 +24,17 @@
 						</li>
 					{{{ end }}}
 				</ul>
+
+				<hr />
+
+				<p>
+					<form role="form" method="post" action="{config.relative_path}/logout">
+						<input type="hidden" name="csrf_token" value="{config.csrf_token}" />
+						<input type="hidden" name="noscript" value="true" />
+
+						<button class="btn btn-link text-danger"><i class="fa fa-arrow-left"></i> [[2factor:choices.logout]]</button>
+					</form>
+				</p>
 			</div>
 		</div>
 	</div>
