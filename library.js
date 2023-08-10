@@ -334,7 +334,7 @@ plugin.check = async ({ req, res }) => {
 	}
 
 	const requestPath = req.baseUrl + req.path;
-	const exemptPrefixes = ['/api/v3/'];
+	const exemptPrefixes = ['/api/v3/', '/reset', '/confirm'];
 	let exemptPaths = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify', '/register/complete'];
 	exemptPaths = exemptPaths.reduce((memo, cur) => {
 		memo.push(nconf.get('relative_path') + cur);
