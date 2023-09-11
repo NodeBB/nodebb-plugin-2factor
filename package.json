@@ -23,7 +23,7 @@
   },
   "readmeFilename": "README.md",
   "nbbpm": {
-    "compatibility": "^3.0.0"
+    "compatibility": "^3.4.2"
   },
   "dependencies": {
     "@github/webauthn-json": "^0.5.7",

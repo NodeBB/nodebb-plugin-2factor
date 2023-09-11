@@ -52,6 +52,7 @@ plugin.init = function (params, callback) {
 		req.session.tfa = true;
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
+		user.auth.addSession(req.uid, req.sessionID, req.session.meta.uuid);
 		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
 	});
 	hostHelpers.setupPageRoute(router, '/login/2fa/authn', [hostMiddleware.ensureLoggedIn], controllers.renderAuthnChallenge);
