@@ -12,6 +12,7 @@ const async = require.main.require('async');
 const user = require.main.require('./src/user');
 const meta = require.main.require('./src/meta');
 const groups = require.main.require('./src/groups');
+const plugins = require.main.require('./src/plugins');
 const notifications = require.main.require('./src/notifications');
 const utils = require.main.require('./src/utils');
 const translator = require.main.require('./src/translator');
@@ -25,7 +26,7 @@ const plugin = {
 	_f2l: undefined,
 };
 
-plugin.init = function (params, callback) {
+plugin.init = async (params) => {
 	const { router } = params;
 	const hostMiddleware = params.middleware;
 	const accountMiddlewares = [
@@ -87,7 +88,20 @@ plugin.init = function (params, callback) {
 		rpName: meta.config.title || 'NodeBB',
 	});
 
-	callback();
+	// Configure 2FA path exemptions
+	let prefixes = ['/reset', '/confirm'];
+	let pages = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify', '/register/complete'];
+	let paths = ['/api/v3/plugins/2factor/authn/verify'];
+	({ prefixes, pages, paths } = await plugins.hooks.fire('filter:2factor.exemptions', { prefixes, pages, paths }));
+	pages = pages.reduce((memo, cur) => {
+		memo.push(nconf.get('relative_path') + cur);
+		memo.push(`${nconf.get('relative_path')}/api${cur}`);
+		return memo;
+	}, []);
+	plugin.exemptions = {
+		prefixes,
+		paths: new Set(pages.concat(paths)),
+	}
 };
 
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
@@ -335,14 +349,7 @@ plugin.check = async ({ req, res }) => {
 	}
 
 	const requestPath = req.baseUrl + req.path;
-	const exemptPrefixes = ['/api/v3/', '/reset', '/confirm'];
-	let exemptPaths = ['/login/2fa', '/login/2fa/authn', '/login/2fa/totp', '/login/2fa/backup', '/2factor/authn/verify', '/register/complete'];
-	exemptPaths = exemptPaths.reduce((memo, cur) => {
-		memo.push(nconf.get('relative_path') + cur);
-		memo.push(`${nconf.get('relative_path')}/api${cur}`);
-		return memo;
-	}, []);
-	if (exemptPaths.includes(requestPath) || exemptPrefixes.some(prefix => requestPath.startsWith(nconf.get('relative_path') + prefix))) {
+	if (plugin.exemptions.paths.has(requestPath) || plugin.exemptions.prefixes.some(prefix => requestPath.startsWith(nconf.get('relative_path') + prefix))) {
 		return;
 	}
 
