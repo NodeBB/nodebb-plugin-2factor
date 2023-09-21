@@ -10,6 +10,16 @@ devices and enabling this enhanced security on their account.
 
 ## Version History
 
+* v7.x
+	* Logged-in users who have not passed the second-factor are now treated as guests. Prior to this, they were considered logged in, but were not able to physically navigate away from the 2FA challenge.
+	* v7.0.2 to v7.2.2 (inclusive) allowed routes mounted to `/api/v3` to not be protected by this plugin. This allowed automated processes to interact via API with 2FA-protected accounts without being challenged for a second factor. As of v7.3.0, this exception was removed as best-practice for security.
+* v6.x
+	* NodeBB v3.x compatibility
+* v5.x
+    * Allows for multiple concurrent second factors (e.g. TOTP and WebAuthn).
+	* The backup code is now considered a second factor, although it is still recommended to be generated when setting up TOTP/Authn
+* v4.x
+	* NodeBB v2.x compatibility
 * v3.x
     * Introduces hardware key support via [WebAuthn](https://en.wikipedia.org/wiki/WebAuthn).
 	* This version is fully backwards compatible with v2.x. The major version bump was merely due to the introduction of the new functionality
