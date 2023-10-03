@@ -9,6 +9,7 @@ const base64url = require('base64url');
 const db = require.main.require('./src/database');
 const nconf = require.main.require('nconf');
 const async = require.main.require('async');
+const winston = require.main.require('winston');
 const user = require.main.require('./src/user');
 const meta = require.main.require('./src/meta');
 const groups = require.main.require('./src/groups');
@@ -382,6 +383,7 @@ plugin.checkSocket = async (data) => {
 	}
 
 	if (await plugin.hasKey(data.socket.uid)) {
+		winston.info(`[plugin/2factor] Denying socket access for uid ${data.socket.uid} pending second factor.`);
 		throw new Error('[[2factor:second-factor-required]]');
 	}
 };
