@@ -41,6 +41,9 @@ plugin.init = async (params) => {
 	const controllers = require('./lib/controllers');
 	const middlewares = require('./lib/middlewares');
 
+	// Public-facing pages
+	hostHelpers.setupPageRoute(router, '/2factor/access-notification', controllers.renderAccessNotificationHelp);
+
 	// ACP
 	hostHelpers.setupAdminPageRoute(router, '/admin/plugins/2factor', [hostMiddleware.pluginHooks], controllers.renderAdminPage);
 
@@ -412,6 +415,18 @@ plugin.adjustRelogin = async ({ req, res }) => {
 		controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
 	}
 };
+
+plugin.handle2faFailure = async (uid) => {
+	const notification = await notifications.create({
+		bodyShort: '[[2factor:notification.failure]]',
+		bodyLong: '',
+		nid: `2factor.failure.${uid}-${Date.now()}`,
+		from: uid,
+		path: `/2factor/access-notification?when=${Date.now()}`,
+	});
+
+	await notifications.push(notification, [uid]);
+}
 
 plugin.integrations = {};
 
