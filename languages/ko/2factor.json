@@ -1,0 +1,79 @@
+{
+	"title": "2단계 인증(2FA)",
+	"intro.title": "2단계 인증(2FA)이란 무엇인가요?",
+	"disabled": "비활성화함",
+	"enabled": "활성화함",
+	"second-factor-required": "이 리소스에 액세스하려면 2단계 인증이 필요합니다",
+
+	"notification.backupCode.generated": "이 계정을 위해 백업 코드 세트가 방금 생성되었습니다.",
+	"notification.backupCode.used": "백업 코드가 방금이 계정에 로그인하는 데 사용되었습니다.",
+	"notification.failure": "누군가가 귀하의 계정에 액세스를 시도했지만 2단계 인증을 통과하지 못했습니다.",
+
+	"user.force_2fa": "관리자가 보안 목적으로 귀하의 계정에 2FA 설정을 요구했습니다.",
+
+	"user.intro.one": "사용자 이름/비밀번호 또는 SSO를 통한 정규 인증 외에도, 시간 기반 일회용 비밀번호가 제공되어 모바일 장치에서 일반적으로 생성/저장되는 경우에만 액세스를 허용하는 두 번째 보안 계층을 구성할 수 있습니다.",
+	"user.intro.two": "2단계 인증을 활성화하려면 아래 설정 방법 중 하나를 선택하세요. 인증자 앱을 통해 설정하는 경우 제공된 QR 코드를 스캔하고 설정을 확인하기 위해 생성된 시간 기반 토큰을 다시 입력하세요. 하드웨어 키를 통해 설정하는 경우 기기를 등록하고 제시된 도전에 서명하여 계속 진행하세요.",
+	"user.intro.three": "설정한 후에는 암호 및 일회용 토큰/도전이 제공될 때까지 로그인 시도가 진행되지 않습니다.",
+	"user.setup.types": "두 가지 유형의 2단계 인증이 지원됩니다. 인증자 앱을 통한 시간 기반 토큰 또는 U2F 지원 키를 통한 하드웨어 기반 토큰입니다. 설정할 전략을 선택하세요:",
+	"user.setup.enableTOTP": "<i class=\"fa fa-2x fa-mobile\"></i><br />인증자 앱을 통한 설정",
+	"user.setup.enableU2F": "<i class=\"fa fa-2x fa-key\"></i><br />하드웨어 키를 통한 설정",
+
+	"user.manage.lead": "여기에서 2단계 인증 방법을 관리하세요.",
+	"user.manage.enable": "활성화",
+	"user.manage.disable": "비활성화",
+	"user.manage.generate": "생성",
+	"user.manage.regenerate": "재생성",
+	"user.manage.disableTotp": "인증자 앱의 연결을 해제하시겠습니까?",
+	"user.manage.disableAuthn": "하드웨어 키의 연결을 해제하시겠습니까?",
+
+	"generate.title": "토큰 생성 및 기기 설정",
+	"generate.text": "위에 표시된 QR 코드를 사용하여 이 웹 사이트의 계정을 모바일 장치(인증자 앱 또는 유사한 앱)와 연결할 수 있습니다. 앱을 통해 스캔하고 생성된 토큰을 입력하여 확인하세요.",
+	"generate.manual-entry": "수동으로 토큰을 추가하려는 경우 아래에 인코딩된 키를 사용할 수 있습니다:",
+	"generate.safety.title": "이 토큰을 안전하게 보관하세요! 타인이 이를 사용하여 자신의 기기를 귀하의 계정에 기기를 등록할 수 있습니다.",
+	"generate.safety.text": "보안 목적으로 QR 코드는 여기에 한 번만 표시됩니다. 기기를 분실했거나 다른 사유로 사용할 수 없는 경우, 계정에서 2FA를 비활성화하지 않으면 포럼에 로그인할 수 없습니다.",
+	"generate.success": "2단계 인증을 성공적으로 활성화했습니다!",
+
+	"choices.lead": "인증에 사용할 2단계 인증의 방법을 선택하세요.",
+	"choices.back": "선택으로 돌아가기",
+	"choices.logout": "로그아웃",
+	"choices.authn": "하드웨어 키 (예: Yubikey, Titan 등)",
+	"choices.totp": "인증자 앱 (예: Google Authenticator, Authy, FreeOTP 등)",
+	"choices.backupCode": "백업 코드",
+
+	"authn.modal.content": "하드웨어 키를 등록하는 요청이 전송되었습니다. 키를 활성화하여 인증하세요.<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
+	"authn.error": "하드웨어 키 등록이 중단되었습니다.",
+	"authn.success": "하드웨어 키를 성공적으로 등록했습니다.",
+	"authn.login.lead": "지금 하드웨어 키를 활성화하세요.",
+	"authn.login.info": "귀하의 계정은 물리적 키를 통한 2단계 인증으로 보호됩니다. 이 계정에 대한 키를 소유하고 계신 경우 키를 활성화하여 주세요.",
+	"authn.login.error": "이 키의 무결성을 확인할 수 없습니다. 백업 코드를 사용하여 로그인하고 계정에 다시 이 키를 등록하세요.",
+
+	"login.text": "모바일 애플리케이션에서 생성한 확인 코드를 입력하세요.",
+	"login.verify": "확인",
+	"login.failure": "입력한 확인 코드가 올바르지 않습니다.",
+	"login.use_backup": "백업 코드 사용",
+
+	"backup.text": "백업 코드 중 하나를 입력하세요.",
+	"backup.failure": "입력한 백업 코드가 올바르지 않습니다.",
+	"backup.use_code": "확인 코드 사용",
+	"backup.generate.title": "새로운 백업 코드 생성",
+	"backup.generate.one": "이 백업 코드는 인증 장치(일반적으로 모바일 전화)가 분실되거나 손상된 경우 계정에 다시 액세스할 수 있도록 돕기 위해 생성되었습니다.",
+	"backup.generate.two": "아래에 코드가 표시되며 다시 표시되지 않습니다. 종이에 기록하고 안전하게 보관하세요!",
+
+	"failureInfo.lead": "이 페이지를 보고 계신다면, 이 알림이 궁금해하실 것입니다.",
+	"failureInfo.when": "%2의 %1에 로그인 시도를 처리를 차단했으며, 귀하의 계정이 2단계 인증으로 보호되어 있어 2단계 인증의 챌린지를 시행했습니다.",
+	"failureInfo.explanation": "이 로그인을 시도한 사용자가 2단계 인증을 성공적으로 통과하지 못했기 때문에 알림을 받았습니다. 만약 이것이 귀하라면, 이 메시지를 안전하게 무시하실 수 있습니다.",
+	"failureInfo.remediation": "그러나 — 만약 이것이 귀하가 아니라면, 누군가가 귀하의 계정에 액세스를 시도한 것으로, <strong>귀하의 비밀번호의 노출로 간주하고 비밀번호를 즉시 변경해야 합니다</strong>. <a href=\"../me/edit/password\">비밀번호를 변경하세요</a>.",
+	"failureInfo.cta": "비밀번호 변경하기 &rarr;",
+
+	"admin.intro.one": "<strong>2단계 인증</strong> (2FA)은 액세스를 허용하기 전에 두 번째 인증 계층을 추가함으로써 작동하는 보안 프로토콜입니다. 일반적으로 이 두 계층은 \"알고 있는 것\" (예: 비밀번호)과 \"가지고 있는 것\" (예: 모바일 장치에서 생성된 토큰)입니다. 이 플러그인은 두 번째 보안 계층을 도입하여 사용자가 포럼의 인증 프로토콜에 기기를 연결하고 활성화할 수 있도록 합니다.",
+	"admin.intro.two": "이 플러그인이 활성화된 경우 사용자는 \"2단계 인증\"이라는 새 프로필 메뉴 항목을 볼 수 있습니다. 이 페이지에서 토큰을 설정할 수 있습니다.",
+	"admin.users.title": "2단계 인증 사용자",
+	"admin.users.text": "다음 사용자가 2단계 인증을 활성화했습니다:",
+	"admin.users.none": "사용자 없음...",
+	"admin.deactivate.title": "사용자별 토큰 비활성화",
+	"admin.deactivate.text": "사용자가 2단계 인증 애플리케이션이 포함된 디바이스를 분실한 경우 계정에 다시 액세스하기 위해 관리자인 귀하에게 요철할 수 있습니다. 해당 사용자가 본인임을 확인했다면 여기에 사용자 이름을 입력하여 계정에 대한 2단계 인증을 비활성화해 줄 수 있습니다.",
+	"admin.deactivate.search": "여기서 사용자 검색...",
+
+	"admin.force_2fa": "2단계 인증 강제 사용",
+	"admin.force_2fa.help": "선택한 그룹에 속한 사용자에게 2단계 인증(2FA)를 활성화하도록 강제합니다. <br /><small>이는 관리자 및 중재자와 같은 특권 사용자의 보안을 강화하는 데 유용합니다.</small>"
+}
