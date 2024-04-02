@@ -21,6 +21,9 @@
 	"scss": [
 		"static/style.scss"
 	],
+	"scripts": [
+		"static/lib/main.js"
+	],
 	"modules": {
 		"../admin/plugins/2factor.js": "./static/lib/admin.js",
 		"../client/login-totp.js": "./static/lib/totp.js",

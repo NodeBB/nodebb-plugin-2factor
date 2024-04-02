@@ -105,7 +105,7 @@ plugin.init = async (params) => {
 	plugin.exemptions = {
 		prefixes,
 		paths: new Set(pages.concat(paths)),
-	}
+	};
 };
 
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
@@ -412,7 +412,10 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
-		controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
+
+		if (!res.locals.isAPI) {
+			controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
+		}
 	}
 };
 
@@ -426,7 +429,7 @@ plugin.handle2faFailure = async (uid) => {
 	});
 
 	await notifications.push(notification, [uid]);
-}
+};
 
 plugin.integrations = {};
 
