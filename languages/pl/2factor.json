@@ -1,8 +1,8 @@
 {
 	"title": "Weryfikacja dwuetapowa",
 	"intro.title": "Co to weryfikacja dwuetapowa (2FA)?",
-	"disabled": "Wyłączone",
-	"enabled": "Włączone",
+	"disabled": "Wyłączona",
+	"enabled": "Włączona",
 	"second-factor-required": "Aby uzyskać dostęp do tego zasobu, wymagane jest uwierzytelnianie dwuetapowe.",
 
 	"notification.backupCode.generated": "Właśnie wygenerowano zestaw kodów zapasowych dla tego konta.",
@@ -12,19 +12,19 @@
 	"user.intro.two": "Aby włączyć uwierzytelnianie dwuetapowe, kliknij przycisk poniżej, aby wygenerować kod. Po wygenerowaniu zeskanuj go na urządzenie mobilne za pomocą narzędzia Google Authenticator (lub innej podobnej aplikacji). Na koniec potwierdź konfigurację, wprowadzając bieżący kod czasowy na ekranie potwierdzenia.",
 	"user.intro.three": "Po skonfigurowaniu, próby logowania nie będą kontynuowane, dopóki nie zostanie dostarczone zarówno hasło, jak i jednorazowy kod.",
 	"user.settings.title": "Ustawienia weryfikacji dwuetapowej",
-	"user.settings.enable": "Włącz weryfikacje dwuetapową",
-	"user.settings.disable": "Wyłącz weryfikacje dwuetapową",
+	"user.settings.enable": "Włącz weryfikację dwuetapową",
+	"user.settings.disable": "Wyłącz weryfikację dwuetapową",
 	"user.settings.generateBackupCodes": "Wygeneruj kody zapasowe",
-	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
+	"user.force_2fa": "Administrator wymaga aktywacji weryfikacji 2FA ze względów bezpieczeństwa",
 
 	"generate.title": "Wygeneruj tymczasowy kod &amp; Skonfiguruj urządzenie",
 	"generate.text": "Powyższy kod QR pozwoli ci skojarzyć Twoje urządzenie mobilne (za pośrednictwem aplikacji Google Authenticator lub odpowiedniego wariantu) z Twoim kontem na tej stronie. Wystarczy zeskanować go za pomocą aplikacji i wprowadzić wygenerowany kod w celu potwierdzenia.",
-	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
+	"generate.manual-entry": "O ile chcesz dodać token ręcznie to możesz skorzystać z pola na klucz poniżej:",
 	"generate.safety.title": "Zachowaj ten kod w bezpiecznym miejscu! Inni mogą go użyć do zarejestrowania swoich urządzeń z przy użyciu Twojego konta.",
 	"generate.safety.text": "Ze względów bezpieczeństwa kod QR zostanie wyświetlony tylko tutaj. Jeśli urządzenie zostanie zgubione lub w inny sposób niedostępne, nie będziesz mógł zalogować się na forum dopóki 2FA nie zostanie dezaktywowane na Twoim koncie.",
-	"generate.success": "Pomyślnie włączono weryfikacje dwuetapową dla Twojego konta, gratulacje!",
+	"generate.success": "Pomyślnie włączono weryfikację dwuetapową dla Twojego konta, gratulacje!",
 
-	"disable.confirm": "Jesteś pewny, że chcesz wyłączyć weryfikacje dwuetapową?",
+	"disable.confirm": "Jesteś pewny, że chcesz wyłączyć weryfikację dwuetapową?",
 
 	"login.text": "Wprowadź kod weryfikacyjny wygenerowany przez aplikację mobilną.",
 	"login.verify": "Zweryfikuj",
@@ -47,6 +47,6 @@
 	"admin.deactivate.text": "W przypadku, gdy użytkownik utraci urządzenie zawierające jego dwuskładnikową aplikację uwierzytelniającą, może skontaktować się z Tobą, aby odzyskać dostęp do swojego konta. Gdy masz już pewność, że jest tym, za kogo się podaje, możesz wyłączyć uwierzytelnianie dwuetapowe na jego koncie, wpisując tutaj nazwę użytkownika.",
 	"admin.deactivate.search": "Wyszukaj użytkowników tutaj...",
 
-	"admin.force_2fa": "Enforce 2factor Authentication",
-	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>"
+	"admin.force_2fa": "Wymuś weryfikację dwuetapową",
+	"admin.force_2fa.help": "Wymagaj od wybranych grup użytkowników aktywacji 2FA. <br /><small>Funkcja ta przekłada się na wyższy poziom bezpieczeństwa tam gdzie w grę wchodzą uprawnienia administratora czy moderatora.</small>"
 }
