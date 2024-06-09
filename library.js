@@ -245,14 +245,24 @@ plugin.saveAuthn = (uid, authnrData) => {
 	db.sortedSetAdd(`2factor:webauthn:counters`, counter, id);
 };
 
-plugin.hasAuthn = async uid => db.exists(`2factor:webauthn:${uid}`);
+plugin.hasAuthn = async (uid) => {
+	if (!(parseInt(uid, 10) > 0)) {
+		return false;
+	}
+	return await db.exists(`2factor:webauthn:${uid}`);
+};
 
-plugin.hasTotp = async uid => db.isObjectField('2factor:uid:key', uid);
+plugin.hasTotp = async (uid) => {
+	if (!(parseInt(uid, 10) > 0)) {
+		return false;
+	}
+	return await db.isObjectField('2factor:uid:key', uid);
+};
 
 // hmm... remove?
 plugin.hasKey = async (uid) => {
 	const [hasTotp, hasAuthn] = await Promise.all([
-		db.isObjectField('2factor:uid:key', uid),
+		plugin.hasTotp(uid),
 		plugin.hasAuthn(uid),
 	]);
 
