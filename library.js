@@ -188,6 +188,12 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	});
 };
 
+plugin.appendConfig = async (config) => {
+	const hasKey = await plugin.hasKey(config.uid);
+	config['2factor'] = { hasKey };
+	return config;
+};
+
 plugin.addAdminNavigation = function (header, callback) {
 	translator.translate('[[2factor:title]]', (title) => {
 		header.plugins.push({
