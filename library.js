@@ -16,7 +16,6 @@ const groups = require.main.require('./src/groups');
 const plugins = require.main.require('./src/plugins');
 const notifications = require.main.require('./src/notifications');
 const utils = require.main.require('./src/utils');
-const translator = require.main.require('./src/translator');
 const routeHelpers = require.main.require('./src/routes/helpers');
 const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
@@ -195,35 +194,32 @@ plugin.appendConfig = async (config) => {
 };
 
 plugin.addAdminNavigation = function (header, callback) {
-	translator.translate('[[2factor:title]]', (title) => {
-		header.plugins.push({
-			route: '/plugins/2factor',
-			icon: 'fa-lock',
-			name: title,
-		});
-
-		callback(null, header);
+	header.plugins.push({
+		route: '/plugins/2factor',
+		icon: 'fa-lock',
+		name: '[[2factor:title]]',
 	});
+
+	callback(null, header);
 };
 
 plugin.addProfileItem = function (data, callback) {
-	translator.translate('[[2factor:title]]', (title) => {
-		data.links.push({
-			id: '2factor',
-			route: '2factor',
-			icon: 'fa-lock',
-			name: title,
-			visibility: {
-				self: true,
-				other: false,
-				moderator: false,
-				globalMod: false,
-				admin: false,
-			},
-		});
-
-		callback(null, data);
+	data.links.push({
+		id: '2factor',
+		route: '2factor',
+		icon: 'fa-lock',
+		name: '[[2factor:title]]',
+		visibility: {
+			self: true,
+			other: false,
+			moderator: false,
+			globalMod: false,
+			admin: false,
+			canViewInfo: false,
+		},
 	});
+
+	callback(null, data);
 };
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
