@@ -30,7 +30,6 @@
     "arraybuffer-to-string": "^1.0.2",
     "async": "^3.2.0",
     "base64url": "^3.0.1",
-    "eslint": "8.x",
     "fido2-lib": "^2.8.1",
     "lru-cache": "^5.1.1",
     "notp": "^2.0.3",
@@ -42,9 +41,8 @@
   "devDependencies": {
     "@commitlint/cli": "^19.3.0",
     "@commitlint/config-angular": "^7.1.2",
-    "eslint": "8.42.0",
-    "eslint-config-nodebb": "0.2.1",
-    "eslint-plugin-import": "2.27.5",
+    "eslint": "9.25.1",
+    "eslint-config-nodebb": "^1.1.4",
     "husky": "^8.0.1",
     "lint-staged": "^10.0.9"
   },
