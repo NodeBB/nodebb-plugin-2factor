@@ -22,7 +22,7 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 				iconEl.classList.remove('fa-spin');
 				iconEl.classList.add('fa-check');
 				iconEl.classList.add('text-success');
-				document.location = config.relative_path + next;
+				document.location = next;
 			}).catch((err) => {
 				alerts.error(err);
 				ajaxify.refresh();

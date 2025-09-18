@@ -21,6 +21,12 @@ const controllerHelpers = require.main.require('./src/controllers/helpers');
 const SocketPlugins = require.main.require('./src/socket.io/plugins');
 
 const atob = base64str => Buffer.from(base64str, 'base64').toString('binary');
+const guard = (path) => {
+	let url = new URL(path, nconf.get('url'));
+	url = url.hostname === nconf.get('url_parsed').hostname ? url : nconf.get('url');
+
+	return url.toString();
+};
 
 const plugin = {
 	_f2l: undefined,
@@ -57,7 +63,7 @@ plugin.init = async (params) => {
 		delete req.session.tfaForce;
 		req.session.meta.datetime = Date.now();
 		user.auth.addSession(req.uid, req.sessionID, req.session.meta.uuid);
-		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
+		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
 	hostHelpers.setupPageRoute(router, '/login/2fa/authn', [hostMiddleware.ensureLoggedIn], controllers.renderAuthnChallenge);
 
@@ -65,7 +71,7 @@ plugin.init = async (params) => {
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
 	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
-		res.redirect(nconf.get('relative_path') + (req.query.next || '/'));
+		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
 	router.put('/login/2fa/backup', hostMiddleware.requireUser, middlewares.requireSecondFactor, hostMiddleware.applyCSRF, controllers.generateBackupCodes);
 
@@ -167,7 +173,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		req.session.meta.datetime = Date.now();
 
 		helpers.formatApiResponse(200, res, {
-			next: req.query.next || '/',
+			next: guard(req.query.next || '/'),
 		});
 	});
 
