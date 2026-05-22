@@ -5,13 +5,12 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 
 	Plugin.init = async () => {
 		try {
-			const webauthnJSON = await import('@github/webauthn-json');
 			const abortController = new AbortController();
 			hooks.on('action:ajaxify.start', () => {
 				abortController.abort();
 			});
 
-			const authResponse = await webauthnJSON.get({
+			const authResponse = await navigator.credentials.get({
 				publicKey: ajaxify.data.authnOptions,
 				signal: abortController.signal,
 			});

@@ -69,8 +69,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 		});
 		api.get('/plugins/2factor/authn/register', {}).then(async (request) => {
 			try {
-				const webauthnJSON = await import('@github/webauthn-json');
-				const response = await webauthnJSON.create({
+				const response = await navigator.credentials.create({
 					publicKey: request,
 				});
 				modal.modal('hide');

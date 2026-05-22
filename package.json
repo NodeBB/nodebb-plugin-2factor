@@ -26,7 +26,6 @@
     "compatibility": "^4.0.0"
   },
   "dependencies": {
-    "@github/webauthn-json": "^0.5.7",
     "arraybuffer-to-string": "^1.0.2",
     "async": "^3.2.0",
     "base64url": "^3.0.1",
