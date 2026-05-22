@@ -48,5 +48,13 @@
 	"admin.deactivate.search": "Wyszukaj użytkowników tutaj...",
 
 	"admin.force_2fa": "Wymuś weryfikację dwuetapową",
+	"authn.register.prompt": "Enter a name for this device (optional):",
+	"authn.login.select": "Select your hardware key to authenticate with:",
+	"authn.rename": "Rename",
+	"authn.rename.prompt": "Enter new device name:",
+	"authn.renamed": "Device renamed successfully.",
+	"authn.remove": "Remove",
+	"authn.remove.confirm": "Are you sure you want to remove this device? You will not be able to use it for two-factor authentication.",
+	"authn.removed": "Device removed successfully.",
 	"admin.force_2fa.help": "Wymagaj od wybranych grup użytkowników aktywacji 2FA. <br /><small>Funkcja ta przekłada się na wyższy poziom bezpieczeństwa tam gdzie w grę wchodzą uprawnienia administratora czy moderatora.</small>"
 }

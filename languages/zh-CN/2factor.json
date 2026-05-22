@@ -48,5 +48,13 @@
 	"admin.deactivate.search": "在这里搜索用户...",
 
 	"admin.force_2fa": "Enforce 2factor Authentication",
+	"authn.register.prompt": "Enter a name for this device (optional):",
+	"authn.login.select": "Select your hardware key to authenticate with:",
+	"authn.rename": "Rename",
+	"authn.rename.prompt": "Enter new device name:",
+	"authn.renamed": "Device renamed successfully.",
+	"authn.remove": "Remove",
+	"authn.remove.confirm": "Are you sure you want to remove this device? You will not be able to use it for two-factor authentication.",
+	"authn.removed": "Device removed successfully.",
 	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>"
 }

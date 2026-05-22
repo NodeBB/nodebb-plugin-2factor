@@ -4,42 +4,89 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 	var Plugin = {};
 
 	Plugin.init = async () => {
-		try {
-			const abortController = new AbortController();
-			hooks.on('action:ajaxify.start', () => {
-				abortController.abort();
-			});
+		const deviceSelect = document.getElementById('deviceSelect');
+		const authBtn = document.getElementById('authBtn');
 
-			const authResponse = await navigator.credentials.get({
-				publicKey: ajaxify.data.authnOptions,
-				signal: abortController.signal,
-			});
+		if (deviceSelect && authBtn) {
+			// Multiple devices - show device selection
+			authBtn.addEventListener('click', async () => {
+				const selectedId = deviceSelect.value;
+				authBtn.disabled = true;
+				try {
+					const abortController = new AbortController();
+					hooks.on('action:ajaxify.start', () => {
+						abortController.abort();
+					});
 
-			api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
+					// Build assertion options for the selected device only
+					const authnOptions = JSON.parse(JSON.stringify(ajaxify.data.authnOptions || {}));
+					authnOptions.allowCredentials = [{
+						id: selectedId,
+						type: 'public-key',
+						transports: ['usb', 'ble', 'nfc'],
+					}];
+
+					const authResponse = await navigator.credentials.get({
+						publicKey: authnOptions,
+						signal: abortController.signal,
+					});
+
+					api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
+						ajaxify.go(next.replace(config.relative_path, ''));
+					}).catch((err) => {
+						alerts.error(err);
+						ajaxify.refresh();
+					});
+				} catch (e) {
+					if (e.code !== 20) { // 20 is user canceled
+						alerts.alert({
+							title: '[[2factor:title]]',
+							message: e.message,
+							timeout: 2500,
+						});
+					}
+					authBtn.disabled = false;
+				}
+			});
+		} else {
+			// Single device or no device selection - proceed directly
+			try {
+				const abortController = new AbortController();
+				hooks.on('action:ajaxify.start', () => {
+					abortController.abort();
+				});
+
+				const authResponse = await navigator.credentials.get({
+					publicKey: ajaxify.data.authnOptions,
+					signal: abortController.signal,
+				});
+
+				api.post(`/plugins/2factor/authn/verify${document.location.search}`, { authResponse }).then(({ next }) => {
+					const iconEl = document.getElementById('statusIcon');
+					iconEl.classList.remove('fa-spinner');
+					iconEl.classList.remove('fa-spin');
+					iconEl.classList.add('fa-check');
+					iconEl.classList.add('text-success');
+					document.location = next;
+				}).catch((err) => {
+					alerts.error(err);
+					ajaxify.refresh();
+				});
+			} catch (e) {
+				if (e.code !== 20) { // 20 is user canceled
+					alerts.alert({
+						title: '[[2factor:title]]',
+						message: e.message,
+						timeout: 2500,
+					});
+				}
+
 				const iconEl = document.getElementById('statusIcon');
 				iconEl.classList.remove('fa-spinner');
 				iconEl.classList.remove('fa-spin');
-				iconEl.classList.add('fa-check');
-				iconEl.classList.add('text-success');
-				document.location = next;
-			}).catch((err) => {
-				alerts.error(err);
-				ajaxify.refresh();
-			});
-		} catch (e) {
-			if (e.code !== 20) { // 20 is user canceled
-				alerts.alert({
-					title: '[[2factor:title]]',
-					message: e.message,
-					timeout: 2500,
-				});
+				iconEl.classList.add('fa-times');
+				iconEl.classList.add('text-danger');
 			}
-
-			const iconEl = document.getElementById('statusIcon');
-			iconEl.classList.remove('fa-spinner');
-			iconEl.classList.remove('fa-spin');
-			iconEl.classList.add('fa-times');
-			iconEl.classList.add('text-danger');
 		}
 	};
 

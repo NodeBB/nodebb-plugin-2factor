@@ -11,12 +11,30 @@
 				</div>
 				<!-- ENDIF error -->
 
+				<!-- IF devices.length > 1 -->
+				<p class="lead text-center">[[2factor:authn.login.select]]</p>
+				<div class="mb-3">
+					<select class="form-select" id="deviceSelect">
+						{{# each devices }}
+						<option value="{id}">{{{ name }}}</option>
+						{{/ each }}
+					</select>
+				</div>
+				<button type="button" class="btn btn-primary btn-block" id="authBtn">[[2factor:authn.login.lead]]</button>
+				<hr />
+				{{{ if !single }}}
+				<p>
+					<a href="{config.relative_path}/login/2fa{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-arrow-left"></i> [[2factor:choices.back]]</a>
+				</p>
+				{{{ end }}}
+				<!-- ELSE -->
 				<p class="lead text-center">[[2factor:authn.login.lead]]<br /><br /><i id="statusIcon" class="fa fa-spinner fa-spin"></i></p>
 				<p>[[2factor:authn.login.info]]</p>
+				<!-- ENDIF -->
 
 				<hr />
 
-				{{{ if !single }}}
+				{{{ if !single && devices.length <= 1 }}}
 				<p>
 					<a href="{config.relative_path}/login/2fa{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-arrow-left"></i> [[2factor:choices.back]]</a>
 				</p>

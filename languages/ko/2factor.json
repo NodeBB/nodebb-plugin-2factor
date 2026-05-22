@@ -75,5 +75,13 @@
 	"admin.deactivate.search": "여기서 사용자 검색...",
 
 	"admin.force_2fa": "2단계 인증 강제 사용",
+	"authn.register.prompt": "Enter a name for this device (optional):",
+	"authn.login.select": "Select your hardware key to authenticate with:",
+	"authn.rename": "Rename",
+	"authn.rename.prompt": "Enter new device name:",
+	"authn.renamed": "Device renamed successfully.",
+	"authn.remove": "Remove",
+	"authn.remove.confirm": "Are you sure you want to remove this device? You will not be able to use it for two-factor authentication.",
+	"authn.removed": "Device removed successfully.",
 	"admin.force_2fa.help": "선택한 그룹에 속한 사용자에게 2단계 인증(2FA)를 활성화하도록 강제합니다. <br /><small>이는 관리자 및 중재자와 같은 특권 사용자의 보안을 강화하는 데 유용합니다.</small>"
 }
