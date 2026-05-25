@@ -68,44 +68,24 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 
 	Settings.renderDevicesList = async () => {
 		const devices = await Settings.getAuthnDevices();
-		const itemEl = document.querySelector('[data-action="setupAuthn"]').closest('.list-group-item');
-		let devicesHtml = '';
-		if (devices.length > 0) {
-			devicesHtml = '<div class="mt-2">';
-			devices.forEach((device, index) => {
-				const name = device.name || `Device ${index + 1}`;
-				devicesHtml += `
-					<div class="d-flex justify-content-between align-items-center mb-1 device-item" data-device-id="${device.id}">
-						<span><i class="fa fa-key text-muted"></i> ${name}</span>
-						<div>
-							<button type="button" class="btn btn-sm btn-link device-rename" data-device-id="${device.id}" title="[[2factor:authn.rename]]"><i class="fa fa-edit"></i></button>
-							<button type="button" class="btn btn-sm btn-link device-remove text-danger" data-device-id="${device.id}" title="[[2factor:authn.remove]]"><i class="fa fa-trash"></i></button>
-						</div>
-					</div>
-				`;
+		app.parseAndTranslate('partials/2factor/deviceList', { devices }, (html) => {
+			const itemEl = document.querySelector('[data-action="setupAuthn"]').closest('.list-group-item');
+			const container = itemEl.querySelector('.device-list-container');
+			if (container) {
+				$(container).html(html);
+			}
+			// Attach event listeners for rename/remove
+			document.querySelectorAll('.device-rename').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const deviceId = e.target.closest('.device-rename').getAttribute('data-device-id');
+					Settings.renameDevice(deviceId);
+				});
 			});
-			devicesHtml += '</div>';
-		}
-		const existing = itemEl.querySelector('.device-list-container');
-		if (existing) {
-			existing.outerHTML = devicesHtml;
-		} else {
-			const container = document.createElement('div');
-			container.className = 'device-list-container mt-2';
-			container.innerHTML = devicesHtml;
-			itemEl.appendChild(container);
-		}
-		// Attach event listeners for rename/remove
-		document.querySelectorAll('.device-rename').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const deviceId = e.target.closest('.device-rename').getAttribute('data-device-id');
-				Settings.renameDevice(deviceId);
-			});
-		});
-		document.querySelectorAll('.device-remove').forEach(btn => {
-			btn.addEventListener('click', (e) => {
-				const deviceId = e.target.closest('.device-remove').getAttribute('data-device-id');
-				Settings.removeDevice(deviceId);
+			document.querySelectorAll('.device-remove').forEach(btn => {
+				btn.addEventListener('click', (e) => {
+					const deviceId = e.target.closest('.device-remove').getAttribute('data-device-id');
+					Settings.removeDevice(deviceId);
+				});
 			});
 		});
 	};

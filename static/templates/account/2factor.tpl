@@ -32,7 +32,9 @@
 			</div>
 			<i class="fa fa-fw fa-key"></i> [[2factor:choices.authn]]
 			<div class="clear"></div>
-			<div class="device-list-container"></div>
+			<div class="device-list-container">
+				<!-- IMPORT partials/2factor/deviceList.tpl -->
+			</div>
 		</div>
 		<div class="list-group-item">
 			<div class="pull-right">
