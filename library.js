@@ -156,7 +156,19 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').host}`,
 			factor: 'second',
 		};
-		req.body.rawId = Uint8Array.from(atob(base64url.toBase64(req.body.rawId)), c => c.charCodeAt(0)).buffer;
+		// fido2-lib 3.x expects rawId/id as ArrayBuffer, attestationObject/clientDataJSON as base64url strings
+		if (typeof req.body.rawId === 'string') {
+			const base64 = req.body.rawId.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.rawId = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
+		if (typeof req.body.id === 'string') {
+			const base64 = req.body.id.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.id = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
 		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
 		const deviceName = typeof req.body.deviceName === 'string' && req.body.deviceName.trim() ? req.body.deviceName.trim() : undefined;
 		plugin.saveAuthn(req.uid, regResult.authnrData, deviceName);
@@ -179,9 +191,19 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			userHandle: null,
 		};
 
-		req.body.authResponse.rawId =
-			Uint8Array.from(atob(base64url.toBase64(req.body.authResponse.rawId)), c => c.charCodeAt(0)).buffer;
-		req.body.authResponse.response.userHandle = undefined;
+		// fido2-lib 3.x expects rawId/id as ArrayBuffer, authenticatorData/clientDataJSON as base64url strings
+		if (typeof req.body.authResponse.rawId === 'string') {
+			const base64 = req.body.authResponse.rawId.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.authResponse.rawId = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
+		if (typeof req.body.authResponse.id === 'string') {
+			const base64 = req.body.authResponse.id.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.authResponse.id = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
 
 		const authnResult = await plugin._f2l.assertionResult(req.body.authResponse, expectations);
 		const count = authnResult.authnrData.get('counter');

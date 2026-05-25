@@ -144,6 +144,23 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 		});
 	};
 
+	// Decode base64url strings to Uint8Array for WebAuthn API
+	function base64urlToUint8Array(str) {
+		const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+		const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+		const binary = atob(base64 + pad);
+		return Uint8Array.from(binary, c => c.charCodeAt(0));
+	}
+
+	// Encode ArrayBuffer/Uint8Array to base64url for JSON transmission
+	function arrayBufferToBase64url(buffer) {
+		const bytes = new Uint8Array(buffer);
+		let binary = '';
+		bytes.forEach(b => { binary += String.fromCharCode(b); });
+		const base64 = btoa(binary);
+		return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+	}
+
 	Settings.setupAuthn = function () {
 		const self = this;
 		self.classList.add('text-muted');
@@ -163,12 +180,27 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 				return;
 			}
 			try {
+				// WebAuthn requires user.id and challenge as BufferSource (Uint8Array)
+				request.user.id = base64urlToUint8Array(request.user.id);
+				request.challenge = base64urlToUint8Array(request.challenge);
 				const response = await navigator.credentials.create({
 					publicKey: request,
 				});
 				modal.modal('hide');
 
-				api.post('/plugins/2factor/authn/register', { ...response, deviceName: deviceName && deviceName.trim() ? deviceName.trim() : undefined }).then(() => {
+				// Encode binary fields for JSON transmission
+				const payload = {
+					id: response.id,
+					rawId: arrayBufferToBase64url(response.rawId),
+					response: {
+						attestationObject: arrayBufferToBase64url(response.response.attestationObject),
+						clientDataJSON: arrayBufferToBase64url(response.response.clientDataJSON),
+					},
+					clientExtensionResults: response.getClientExtensionResults(),
+					deviceName: deviceName && deviceName.trim() ? deviceName.trim() : undefined,
+				};
+
+				api.post('/plugins/2factor/authn/register', payload).then(() => {
 					alerts.success('[[2factor:authn.success]]');
 					Settings.renderDevicesList();
 					ajaxify.refresh();
