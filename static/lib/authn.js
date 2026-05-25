@@ -95,7 +95,7 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 				authBtn.disabled = true;
 				try {
 					await Plugin.verify([{ id: selectedId, type: 'public-key', transports: ['usb', 'ble', 'nfc'] }], (next) => {
-						ajaxify.go(next.replace(config.relative_path, ''));
+						document.location = next;
 					});
 				} catch (e) {
 					if (e.code !== 20) { // 20 is user canceled
@@ -112,11 +112,6 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 			// Single device or no device selection - proceed directly
 			try {
 				await Plugin.verify(null, (next) => {
-					const iconEl = document.getElementById('statusIcon');
-					iconEl.classList.remove('fa-spinner');
-					iconEl.classList.remove('fa-spin');
-					iconEl.classList.add('fa-check');
-					iconEl.classList.add('text-success');
 					document.location = next;
 				});
 			} catch (e) {
