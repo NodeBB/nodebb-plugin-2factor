@@ -131,15 +131,47 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res, registrationRequest);
 	});
 
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/authn/devices', middlewares, async (req, res) => {
+		const devices = await plugin.getAuthnDevices(req.uid);
+		helpers.formatApiResponse(200, res, { devices });
+	});
+
+	routeHelpers.setupApiRoute(router, 'patch', '/2factor/authn/device', middlewares, async (req, res) => {
+		const { id, name } = req.body;
+		if (typeof name !== 'string' || !name.trim()) {
+			return helpers.formatApiResponse(400, res);
+		}
+		await plugin.renameDevice(req.uid, id, name.trim());
+		helpers.formatApiResponse(200, res);
+	});
+
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn/device/:id', middlewares, async (req, res) => {
+		await plugin.removeDevice(req.uid, req.params.id);
+		helpers.formatApiResponse(200, res);
+	});
+
 	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/register', middlewares, async (req, res) => {
 		const attestationExpectations = {
 			challenge: req.session.registrationRequest.challenge,
 			origin: `${nconf.get('url_parsed').protocol}//${nconf.get('url_parsed').host}`,
 			factor: 'second',
 		};
-		req.body.rawId = Uint8Array.from(atob(base64url.toBase64(req.body.rawId)), c => c.charCodeAt(0)).buffer;
+		// fido2-lib 3.x expects rawId/id as ArrayBuffer, attestationObject/clientDataJSON as base64url strings
+		if (typeof req.body.rawId === 'string') {
+			const base64 = req.body.rawId.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.rawId = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
+		if (typeof req.body.id === 'string') {
+			const base64 = req.body.id.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.id = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
 		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
-		plugin.saveAuthn(req.uid, regResult.authnrData);
+		const deviceName = typeof req.body.deviceName === 'string' && req.body.deviceName.trim() ? req.body.deviceName.trim() : undefined;
+		plugin.saveAuthn(req.uid, regResult.authnrData, deviceName);
 		delete req.session.registrationRequest;
 		req.session.tfa = true; // eliminate re-challenge on registration
 
@@ -156,12 +188,22 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			factor: 'second',
 			publicKey,
 			prevCounter,
-			userHandle: null,
+			userHandle: base64url(String(req.uid)),
 		};
 
-		req.body.authResponse.rawId =
-			Uint8Array.from(atob(base64url.toBase64(req.body.authResponse.rawId)), c => c.charCodeAt(0)).buffer;
-		req.body.authResponse.response.userHandle = undefined;
+		// fido2-lib 3.x expects rawId/id as ArrayBuffer, authenticatorData/clientDataJSON as base64url strings
+		if (typeof req.body.authResponse.rawId === 'string') {
+			const base64 = req.body.authResponse.rawId.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.authResponse.rawId = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
+		if (typeof req.body.authResponse.id === 'string') {
+			const base64 = req.body.authResponse.id.replace(/-/g, '+').replace(/_/g, '/');
+			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
+			const binary = atob(base64 + pad);
+			req.body.authResponse.id = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
 
 		const authnResult = await plugin._f2l.assertionResult(req.body.authResponse, expectations);
 		const count = authnResult.authnrData.get('counter');
@@ -175,15 +217,6 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res, {
 			next: guard(req.query.next || '/'),
 		});
-	});
-
-	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', middlewares, async (req, res) => {
-		const { uid } = req;
-		const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
-		await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
-		await db.delete(`2factor:webauthn:${uid}`);
-
-		helpers.formatApiResponse(200, res);
 	});
 
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', middlewares, async (req, res) => {
@@ -232,7 +265,16 @@ plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
 plugin.getAuthnKeyIds = async (uid) => {
 	const keys = await db.getObject(`2factor:webauthn:${uid}`);
-	return Object.keys(keys);
+	return keys ? Object.keys(keys) : [];
+};
+
+plugin.getAuthnDevices = async (uid) => {
+	const keyIds = await plugin.getAuthnKeyIds(uid);
+	const names = await db.getObject(`2factor:webauthn:${uid}:names`) || {};
+	return keyIds.map(id => ({
+		id,
+		name: names[id] || `Device ${keyIds.indexOf(id) + 1}`,
+	}));
 };
 
 plugin.getAuthnPublicKey = async (uid, id) => db.getObjectField(`2factor:webauthn:${uid}`, id);
@@ -245,12 +287,15 @@ plugin.save = function (uid, key, callback) {
 	db.setObjectField('2factor:uid:key', uid, key, callback);
 };
 
-plugin.saveAuthn = (uid, authnrData) => {
+plugin.saveAuthn = async (uid, authnrData, deviceName) => {
 	const counter = authnrData.get('counter');
 	const publicKey = authnrData.get('credentialPublicKeyPem');
 	const id = base64url(authnrData.get('credId'));
-	db.setObjectField(`2factor:webauthn:${uid}`, id, publicKey);
-	db.sortedSetAdd(`2factor:webauthn:counters`, counter, id);
+	await db.setObjectField(`2factor:webauthn:${uid}`, id, publicKey);
+	await db.sortedSetAdd(`2factor:webauthn:counters`, counter, id);
+	if (deviceName) {
+		await db.setObjectField(`2factor:webauthn:${uid}:names`, id, deviceName);
+	}
 };
 
 plugin.hasAuthn = async (uid) => {
@@ -352,6 +397,17 @@ plugin.disassociate = async (uid) => {
 	const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
 	await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
 	await db.delete(`2factor:webauthn:${uid}`);
+	await db.delete(`2factor:webauthn:${uid}:names`);
+};
+
+plugin.removeDevice = async (uid, id) => {
+	await db.sortedSetRemove('2factor:webauthn:counters', id);
+	await db.deleteObjectField(`2factor:webauthn:${uid}`, id);
+	await db.deleteObjectField(`2factor:webauthn:${uid}:names`, id);
+};
+
+plugin.renameDevice = async (uid, id, newName) => {
+	await db.setObjectField(`2factor:webauthn:${uid}:names`, id, newName);
 };
 
 plugin.overrideUid = async ({ req, locals }) => {
