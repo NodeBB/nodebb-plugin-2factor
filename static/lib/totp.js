@@ -11,11 +11,15 @@ define('forum/login-totp', [], function () {
 			codeEl.focus();
 
 			codeEl.addEventListener('keyup', (e) => {
-				const length = e.target.value.length;
+				const length = e.target.value.replace(/\s/g, '').length;
 				if (length === 6) {
 					submitBtn.disabled = true;
 					formEl.submit();
 				}
+			});
+
+			formEl.addEventListener('submit', () => {
+				codeEl.value = codeEl.value.replace(/\s/g, '');
 			});
 		}
 	};

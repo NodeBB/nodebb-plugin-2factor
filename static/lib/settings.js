@@ -34,12 +34,12 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 			var codeEl = modal.find('.2fa-confirm');
 
 			confirmEl.on('click', function () {
-				Settings.verifyTotp(data.key, codeEl.val(), modal);
+				Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
 			});
 
 			formEl.on('submit', function (e) {
 				e.preventDefault();
-				Settings.verifyTotp(data.key, codeEl.val(), modal);
+				Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
 			});
 
 			modal.on('shown.bs.modal', function () {
