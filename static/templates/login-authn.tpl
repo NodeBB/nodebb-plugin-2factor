@@ -11,7 +11,7 @@
 				</div>
 				<!-- ENDIF error -->
 
-				{{{ if (devices.length != 1) }}}
+				{{{ if (devices.length != "1") }}}
 				<p class="lead text-center">[[2factor:authn.login.select]]</p>
 				<div class="mb-3">
 					<select class="form-select" id="deviceSelect">
@@ -34,7 +34,7 @@
 
 				<hr />
 
-				{{{ if (!single && (devices.length == 1)) }}}
+				{{{ if (!single && (devices.length == "1")) }}}
 				<p>
 					<a href="{config.relative_path}/login/2fa{{{ if next }}}?next={next}{{{ end }}}"><i class="fa fa-arrow-left"></i> [[2factor:choices.back]]</a>
 				</p>
