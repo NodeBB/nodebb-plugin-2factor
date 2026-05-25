@@ -188,7 +188,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			factor: 'second',
 			publicKey,
 			prevCounter,
-			userHandle: null,
+			userHandle: base64url(String(req.uid)),
 		};
 
 		// fido2-lib 3.x expects rawId/id as ArrayBuffer, authenticatorData/clientDataJSON as base64url strings
