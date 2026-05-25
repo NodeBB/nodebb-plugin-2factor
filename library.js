@@ -219,8 +219,6 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		});
 	});
 
-
-
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', middlewares, async (req, res) => {
 		await db.deleteObjectField('2factor:uid:key', req.uid);
 
@@ -267,7 +265,7 @@ plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
 
 plugin.getAuthnKeyIds = async (uid) => {
 	const keys = await db.getObject(`2factor:webauthn:${uid}`);
-	return Object.keys(keys);
+	return keys ? Object.keys(keys) : [];
 };
 
 plugin.getAuthnDevices = async (uid) => {
@@ -403,10 +401,7 @@ plugin.disassociate = async (uid) => {
 };
 
 plugin.removeDevice = async (uid, id) => {
-	const counters = await db.getObjectKeys(`2factor:webauthn:counters`);
-	if (counters.includes(id)) {
-		await db.sortedSetRemove('2factor:webauthn:counters', id);
-	}
+	await db.sortedSetRemove('2factor:webauthn:counters', id);
 	await db.deleteObjectField(`2factor:webauthn:${uid}`, id);
 	await db.deleteObjectField(`2factor:webauthn:${uid}:names`, id);
 };
