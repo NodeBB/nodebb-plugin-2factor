@@ -4,10 +4,10 @@ const base32 = require('thirty-two');
 const notp = require('notp');
 const qrcode = require('qrcode');
 
-const user = require.main.require('./src/user');
-const nconf = require.main.require('nconf');
-const utils = require.main.require('./src/utils');
-const meta = require.main.require('./src/meta');
+const user = nodebb.require('./src/user');
+const nconf = nodebb.require('nconf');
+const utils = nodebb.require('./src/utils');
+const meta = nodebb.require('./src/meta');
 
 const parent = module.parent.exports;
 const Sockets = {

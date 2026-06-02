@@ -1,24 +1,24 @@
 'use strict';
 
-const passport = require.main.require('passport');
+const passport = nodebb.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
 const { Fido2Lib } = require('fido2-lib');
 const base64url = require('base64url');
 
-const db = require.main.require('./src/database');
-const nconf = require.main.require('nconf');
-const async = require.main.require('async');
-const winston = require.main.require('winston');
-const user = require.main.require('./src/user');
-const meta = require.main.require('./src/meta');
-const groups = require.main.require('./src/groups');
-const plugins = require.main.require('./src/plugins');
-const notifications = require.main.require('./src/notifications');
-const utils = require.main.require('./src/utils');
-const routeHelpers = require.main.require('./src/routes/helpers');
-const controllerHelpers = require.main.require('./src/controllers/helpers');
-const SocketPlugins = require.main.require('./src/socket.io/plugins');
+const db = nodebb.require('./src/database');
+const nconf = nodebb.require('nconf');
+const async = nodebb.require('async');
+const winston = nodebb.require('winston');
+const user = nodebb.require('./src/user');
+const meta = nodebb.require('./src/meta');
+const groups = nodebb.require('./src/groups');
+const plugins = nodebb.require('./src/plugins');
+const notifications = nodebb.require('./src/notifications');
+const utils = nodebb.require('./src/utils');
+const routeHelpers = nodebb.require('./src/routes/helpers');
+const controllerHelpers = nodebb.require('./src/controllers/helpers');
+const SocketPlugins = nodebb.require('./src/socket.io/plugins');
 
 const atob = base64str => Buffer.from(base64str, 'base64').toString('binary');
 const guard = (path) => {
@@ -42,7 +42,7 @@ plugin.init = async (params) => {
 		hostMiddleware.checkAccountPermissions,
 		hostMiddleware.buildAccountData,
 	];
-	const hostHelpers = require.main.require('./src/routes/helpers');
+	const hostHelpers = nodebb.require('./src/routes/helpers');
 	const controllers = require('./lib/controllers');
 	const middlewares = require('./lib/middlewares');
 
