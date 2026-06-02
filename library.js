@@ -8,7 +8,6 @@ const base64url = require('base64url');
 
 const db = nodebb.require('./src/database');
 const nconf = nodebb.require('nconf');
-const async = nodebb.require('async');
 const winston = nodebb.require('winston');
 const user = nodebb.require('./src/user');
 const meta = nodebb.require('./src/meta');
@@ -232,17 +231,17 @@ plugin.appendConfig = async (config) => {
 	return config;
 };
 
-plugin.addAdminNavigation = function (header, callback) {
+plugin.addAdminNavigation = function (header) {
 	header.plugins.push({
 		route: '/plugins/2factor',
 		icon: 'fa-lock',
 		name: '[[2factor:title]]',
 	});
 
-	callback(null, header);
+	return header;
 };
 
-plugin.addProfileItem = function (data, callback) {
+plugin.addProfileItem = function (data) {
 	data.links.push({
 		id: '2factor',
 		route: '2factor',
@@ -258,7 +257,7 @@ plugin.addProfileItem = function (data, callback) {
 		},
 	});
 
-	callback(null, data);
+	return data;
 };
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
@@ -283,8 +282,8 @@ plugin.getAuthnCount = async id => db.sortedSetScore(`2factor:webauthn:counters`
 
 plugin.updateAuthnCount = async (id, count) => db.sortedSetAdd(`2factor:webauthn:counters`, count, id);
 
-plugin.save = function (uid, key, callback) {
-	db.setObjectField('2factor:uid:key', uid, key, callback);
+plugin.save = function (uid, key) {
+	return db.setObjectField('2factor:uid:key', uid, key);
 };
 
 plugin.saveAuthn = async (uid, authnrData, deviceName) => {
@@ -326,7 +325,7 @@ plugin.hasBackupCodes = async uid => db.exists(`2factor:uid:${uid}:backupCodes`)
 
 plugin.countBackupCodes = async uid => db.setCount(`2factor:uid:${uid}:backupCodes`);
 
-plugin.generateBackupCodes = function (uid, callback) {
+plugin.generateBackupCodes = async (uid) => {
 	const set = `2factor:uid:${uid}:backupCodes`;
 	const codes = [];
 	let code;
@@ -336,55 +335,46 @@ plugin.generateBackupCodes = function (uid, callback) {
 		codes.push(code);
 	}
 
-	async.series([
-		async.apply(db.delete, set), // Invalidate all old codes
-		async.apply(db.setAdd, set, codes), // Save new codes
-		function (next) {
-			notifications.create({
-				bodyShort: '[[2factor:notification.backupCode.generated]]',
-				bodyLong: '',
-				nid: `2factor.backupCode.generated-${uid}-${Date.now()}`,
-				from: uid,
-				path: '/',
-			}, (err, notification) => {
-				if (!err && notification) {
-					notifications.push(notification, [uid], next);
-				}
-			});
-		},
-	], (err) => {
-		callback(err, codes);
+	await db.delete(set); // Invalidate all old codes
+	await db.setAdd(set, codes); // Save new codes
+
+	const notification = await notifications.create({
+		bodyShort: '[[2factor:notification.backupCode.generated]]',
+		bodyLong: '',
+		nid: `2factor.backupCode.generated-${uid}-${Date.now()}`,
+		from: uid,
+		path: '/',
 	});
+
+	if (notification) {
+		await notifications.push(notification, [uid]);
+	}
+
+	return codes;
 };
 
-plugin.useBackupCode = function (code, uid, callback) {
+plugin.useBackupCode = async (code, uid) => {
 	const set = `2factor:uid:${uid}:backupCodes`;
 
-	async.waterfall([
-		async.apply(db.isSetMember, set, code),
-		function (valid, next) {
-			if (valid) {
-				// Invalidate this backup code
-				db.setRemove(set, code, (err) => {
-					next(err, valid);
-				});
+	const valid = await db.isSetMember(set, code);
+	if (valid) {
+		// Invalidate this backup code
+		await db.setRemove(set, code);
 
-				notifications.create({
-					bodyShort: '[[2factor:notification.backupCode.used]]',
-					bodyLong: '',
-					nid: `2factor.backupCode.used-${uid}-${Date.now()}`,
-					from: uid,
-					path: '/',
-				}, (err, notification) => {
-					if (!err && notification) {
-						notifications.push(notification, [uid]);
-					}
-				});
-			} else {
-				next(null, valid);
-			}
-		},
-	], callback);
+		const notification = await notifications.create({
+			bodyShort: '[[2factor:notification.backupCode.used]]',
+			bodyLong: '',
+			nid: `2factor.backupCode.used-${uid}-${Date.now()}`,
+			from: uid,
+			path: '/',
+		});
+
+		if (notification) {
+			await notifications.push(notification, [uid]);
+		}
+	}
+
+	return valid;
 };
 
 plugin.disassociate = async (uid) => {
@@ -465,21 +455,15 @@ plugin.checkSocket = async (data) => {
 	}
 };
 
-plugin.clearSession = function (data, callback) {
+plugin.clearSession = function (data) {
 	if (data.req.session) {
 		delete data.req.session.tfa;
 	}
-
-	setImmediate(callback);
 };
 
-plugin.getUsers = function (callback) {
-	async.waterfall([
-		async.apply(db.getObjectKeys, '2factor:uid:key'),
-		function (uids, next) {
-			user.getUsersFields(uids, ['username', 'userslug', 'picture'], next);
-		},
-	], callback);
+plugin.getUsers = async () => {
+	const uids = await db.getObjectKeys('2factor:uid:key');
+	return user.getUsersFields(uids, ['username', 'userslug', 'picture']);
 };
 
 plugin.adjustRelogin = async ({ req, res }) => {
