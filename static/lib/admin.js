@@ -1,6 +1,6 @@
 'use strict';
 
-define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts'], function (Settings, autocomplete, alerts) {
+define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts', 'modals'], function (Settings, autocomplete, alerts, modals) {
 	var ACP = {};
 
 	ACP.init = function () {
@@ -24,7 +24,7 @@ define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts'], function
 			var uid = ui.item.user.uid;
 			var username = ui.item.user.name;
 
-			bootbox.confirm('Are you sure you wish to deactivate 2FA for <strong>' + username + '</strong>?', function (confirm) {
+			modals.confirm('Are you sure you wish to deactivate 2FA for <strong>' + username + '</strong>?', function (confirm) {
 				if (confirm) {
 					socket.emit('plugins.2factor.admin.disassociate', {
 						uid: uid,

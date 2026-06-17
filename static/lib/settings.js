@@ -1,6 +1,6 @@
 'use strict';
 
-define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, alerts, bootbox) {
+define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], function (api, alerts, modals, benchpress) {
 	var Settings = {};
 
 	Settings.init = function () {
@@ -28,7 +28,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 			const message = await app.parseAndTranslate('partials/2factor/generate', data);
 			const size = 'lg';
 
-			var modal = bootbox.dialog({ title: '[[2factor:generate.title]]', message, size });
+			var modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
 			var formEl = modal.find('form');
 			var confirmEl = modal.find('button[data-action="confirm"]');
 			var codeEl = modal.find('.2fa-confirm');
@@ -49,7 +49,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 	};
 
 	Settings.disableTotp = () => {
-		bootbox.confirm('[[2factor:user.manage.disableTotp]]', function (confirm) {
+		modals.confirm('[[2factor:user.manage.disableTotp]]', function (confirm) {
 			if (confirm) {
 				api.del('/plugins/2factor/totp').then(ajaxify.refresh).catch(alerts.error);
 			}
@@ -91,7 +91,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 	};
 
 	Settings.renameDevice = (deviceId) => {
-		bootbox.prompt('[[2factor:authn.rename.prompt]]', function (result) {
+		modals.prompt('[[2factor:authn.rename.prompt]]', function (result) {
 			if (result && result.trim()) {
 				api.patch('/plugins/2factor/authn/device', { id: deviceId, name: result.trim() })
 					.then(() => {
@@ -104,7 +104,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 	};
 
 	Settings.removeDevice = (deviceId) => {
-		bootbox.confirm('[[2factor:authn.remove.confirm]]', function (confirm) {
+		modals.confirm('[[2factor:authn.remove.confirm]]', function (confirm) {
 			if (confirm) {
 				api.del(`/plugins/2factor/authn/device/${deviceId}`)
 					.then(() => {
@@ -117,7 +117,7 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 	};
 
 	Settings.disableAuthn = () => {
-		bootbox.confirm('[[2factor:user.manage.disableAuthn]]', function (confirm) {
+		modals.confirm('[[2factor:user.manage.disableAuthn]]', function (confirm) {
 			if (confirm) {
 				api.del('/plugins/2factor/authn').then(ajaxify.refresh).catch(alerts.error);
 			}
@@ -144,8 +144,8 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 	Settings.setupAuthn = function () {
 		const self = this;
 		self.classList.add('text-muted');
-		bootbox.prompt('[[2factor:authn.register.prompt]]', async function (deviceName) {
-			const modal = bootbox.dialog({
+		modals.prompt('[[2factor:authn.register.prompt]]', async function (deviceName) {
+			const modal = await modals.dialog({
 				message: '[[2factor:authn.modal.content]]',
 				closeButton: false,
 				className: 'text-center',
@@ -220,8 +220,8 @@ define('forum/account/2factor', ['api', 'alerts', 'bootbox'], function (api, ale
 				'x-csrf-token': config.csrf_token,
 			},
 		}).done(function (data) {
-			app.parseAndTranslate('partials/2factor/generateBackupCodes', data, function (html) {
-				bootbox.dialog({
+			benchpress.render('partials/2factor/generateBackupCodes', data).then(function (html) {
+				modals.dialog({
 					title: '[[2factor:backup.generate.title]]',
 					message: html,
 					onEscape: true,
