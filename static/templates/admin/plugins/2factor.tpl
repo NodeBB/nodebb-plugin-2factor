@@ -19,26 +19,24 @@
 						[[2factor:admin.users.text]]
 					</p>
 
-					<!-- IF users.length -->
+					{{{ if users.length }}}
 					<ul class="user-list list-group list-group-horizontal">
-						<!-- BEGIN users -->
+						{{{ each users }}}
 						<li class="list-group-item">
 							<a href="{users.config.relative_path}/user/{users.userslug}">
-								<!-- IF ../picture -->
-								<img class="avatar" component="user/picture" style="--avatar-size: 32px;" src="{../picture}" itemprop="image" />
-								<!-- ELSE -->
-								<div class="avatar" component="user/picture" style="--avatar-size: 32px; background-color: {../icon:bgColor};">{../icon:text}</div>
-								<!-- END -->
+								{{buildAvatar(@value)}}
+							</a>
+							<a href="{users.config.relative_path}/user/{users.userslug}">
 								{users.username}
 							</a>
 						</li>
-						<!-- END users -->
+						{{{ end }}}
 					</ul>
-					<!-- ELSE -->
+					{{{ else }}}
 					<div class="alert alert-warning text-center">
 						<em>[[2factor:admin.users.none]]</em>
 					</div>
-					<!-- ENDIF users.length -->
+					{{{ end }}}
 				</div>
 
 				<div class="mb-4">
