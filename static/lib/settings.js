@@ -25,7 +25,7 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 				return alerts.error(err);
 			}
 
-			const message = await app.parseAndTranslate('partials/2factor/generate', data);
+			const message = await benchpress.render('partials/2factor/generate', data);
 			const size = 'lg';
 
 			var modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
