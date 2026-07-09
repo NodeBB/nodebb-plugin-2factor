@@ -449,9 +449,20 @@ plugin.checkSocket = async (data) => {
 		return;
 	}
 
+	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
+	tfaEnforcedGroups = JSON.parse(tfaEnforcedGroups || '[]');
+
 	if (await plugin.hasKey(data.socket.uid)) {
 		winston.info(`[plugin/2factor] Denying socket access for uid ${data.socket.uid} pending second factor.`);
 		throw new Error('[[2factor:second-factor-required]]');
+	} else if (tfaEnforcedGroups.length) {
+		const inEnforcedGroup = (await groups.isMemberOfGroups(
+			data.socket.uid, tfaEnforcedGroups,
+		)).includes(true);
+		if (inEnforcedGroup) {
+			winston.info(`[plugin/2factor] Denying socket access for uid ${data.socket.uid} — TFA enforced by group policy.`);
+			throw new Error('[[2factor:second-factor-required]]');
+		}
 	}
 };
 

@@ -26,7 +26,7 @@
 	<div class="list-group col-12 col-sm-8 offset-sm-2">
 		<div class="list-group-item">
 			<div class="pull-right">
-				<a role="button" data-action="setupAuthn">{{{ if hasAuthn }}}[[2factor:authn.add]]{{{ else }}}[[2factor:user.manage.enable]]{{{ end }}}</a>
+				<a class="" role="button" data-action="setupAuthn">{{{ if hasAuthn }}}[[2factor:authn.add]]{{{ else }}}[[2factor:user.manage.enable]]{{{ end }}}</a>
 				&nbsp;&nbsp;&nbsp;&nbsp;
 				<a role="button" data-action="disableAuthn" class="{{{ if !hasAuthn }}}text-muted{{{ end }}}">[[2factor:user.manage.disable]]</a>
 			</div>
