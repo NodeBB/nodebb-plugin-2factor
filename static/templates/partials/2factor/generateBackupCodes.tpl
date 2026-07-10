@@ -1,15 +1,15 @@
 <div class="row">
 	<div class="col-12">
 		<p class="lead">
-			[[2factor:backup.generate.one]]
+			{{tx("2factor:backup.generate.one")}}
 		</p>
 		<p>
-			[[2factor:backup.generate.two]]
+			{{tx("2factor:backup.generate.two")}}
 		</p>
 		<ul class="list-group text-center">
-			<!-- BEGIN codes -->
+			{{{ each codes}}}
 			<li class="list-group-item">{@value}</li>
-			<!-- END codes -->
+			{{{ end }}}
 		</ul>
 	</div>
 </div>

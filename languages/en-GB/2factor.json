@@ -31,6 +31,7 @@
 	"generate.manual-entry": "If you wish to add your token manually, you can do so with the encoded key below:",
 	"generate.safety.title": "Keep this token safe! Others can use it to register their devices with your account.",
 	"generate.safety.text": "For security purposes, the QR code will only be shown here. In the event your device is lost or is otherwise unavailable, you will not be able to log into NodeBB unless 2FA is deactivated on your account.",
+	"generate.confirm": "Confirm",
 	"generate.success": "Successfully enabled Two-Factor Authentication!",
 
 	"choices.lead": "Please select the second-factor method you wish to authenticate with.",
