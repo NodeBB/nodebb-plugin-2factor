@@ -94,7 +94,7 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 				const selectedId = deviceSelect.value;
 				authBtn.disabled = true;
 				try {
-					await Plugin.verify([{ id: selectedId, type: 'public-key', transports: ['usb', 'ble', 'nfc'] }], (next) => {
+					await Plugin.verify([{ id: selectedId, type: 'public-key' }], (next) => {
 						document.location = next;
 					});
 				} catch (e) {
