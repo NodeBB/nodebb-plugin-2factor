@@ -55,7 +55,7 @@
 						<div class="form-group">
 							<label for="tfaEnforcedGroups">{{tx("2factor:admin.force_2fa.help")}}</label>
 							<select class="form-select" id="tfaEnforcedGroups" name="tfaEnforcedGroups" multiple>
-								{{ each groups }}
+								{{{ each groups }}}
 								<option value="{./name}">{./value}</option>
 								{{{ end }}}
 							</select>
