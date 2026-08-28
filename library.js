@@ -59,8 +59,12 @@ plugin.init = async (params) => {
 	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
 	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
 		req.session.tfa = true;
-		delete req.session.tfaForce;
-		req.session.meta.datetime = Date.now();
+		const now = Date.now();
+		req.session.meta.datetime = now;
+		if (req.session.tfaForce) {
+			delete req.session.tfaForce;
+			req.session.meta.reAuthAt = now;
+		}
 		user.auth.addSession(req.uid, req.sessionID, req.session.meta.uuid);
 		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
@@ -209,9 +213,13 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		await plugin.updateAuthnCount(req.body.authResponse.id, count);
 
 		req.session.tfa = true;
+		const now = Date.now();
+		req.session.meta.datetime = now;
+		if (req.session.tfaForce) {
+			delete req.session.tfaForce;
+			req.session.meta.reAuthAt = now;
+		}
 		delete req.session.authRequest;
-		delete req.session.tfaForce;
-		req.session.meta.datetime = Date.now();
 
 		helpers.formatApiResponse(200, res, {
 			next: guard(req.query.next || '/'),
