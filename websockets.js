@@ -34,15 +34,16 @@ Sockets.regenerate = function (socket, data, callback) {
 };
 
 Sockets.confirm = function (socket, data, callback) {
-	const { key } = data;
-	const { token } = data;
+	const { key, token } = data;
 	const confirmed = notp.totp.verify(token, key);
 
 	if (confirmed) {
 		parent.save(socket.uid, key, (err) => {
+			if (err) {
+				return callback(err);
+			}
 			socket.request.session.tfa = true; // eliminate re-challenge on registration
-
-			callback(err);
+			callback();
 		});
 	} else {
 		callback(new Error('[[error:invalid-data]]'));
