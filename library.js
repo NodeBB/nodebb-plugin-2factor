@@ -174,7 +174,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		}
 		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
 		const deviceName = typeof req.body.deviceName === 'string' && req.body.deviceName.trim() ? req.body.deviceName.trim() : undefined;
-		plugin.saveAuthn(req.uid, regResult.authnrData, deviceName);
+		await plugin.saveAuthn(req.uid, regResult.authnrData, deviceName);
 		delete req.session.registrationRequest;
 		req.session.tfa = true; // eliminate re-challenge on registration
 
@@ -290,8 +290,8 @@ plugin.getAuthnCount = async id => db.sortedSetScore(`2factor:webauthn:counters`
 
 plugin.updateAuthnCount = async (id, count) => db.sortedSetAdd(`2factor:webauthn:counters`, count, id);
 
-plugin.save = function (uid, key) {
-	return db.setObjectField('2factor:uid:key', uid, key);
+plugin.save = async function (uid, key) {
+	return await db.setObjectField('2factor:uid:key', uid, key);
 };
 
 plugin.saveAuthn = async (uid, authnrData, deviceName) => {

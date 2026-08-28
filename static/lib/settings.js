@@ -201,15 +201,12 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 			key: key,
 			token: token,
 		}, function (err) {
-			if (!err) {
-				modal.modal('hide');
-				ajaxify.refresh();
-				alerts.success('[[2factor:generate.success]]');
-			} else {
-				// Probably a bad validation code
-				var inputEl = modal.find('.2fa-confirm');
-				inputEl.parent().addClass('has-error');
+			if (err) {
+				return alerts.error(err);
 			}
+			modal.modal('hide');
+			ajaxify.refresh();
+			alerts.success('[[2factor:generate.success]]');
 		});
 	};
 
