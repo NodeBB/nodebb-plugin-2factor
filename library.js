@@ -432,9 +432,9 @@ plugin.check = async ({ req, res }) => {
 	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
 	tfaEnforcedGroups = JSON.parse(tfaEnforcedGroups || '[]');
 
-	const redirect = requestPath
-		.replace('/api', '')
-		.replace(nconf.get('relative_path'), '');
+	const redirect = req.session.returnTo || requestPath
+		.replace(new RegExp(`^${nconf.get('relative_path')}`), '')
+		.replace(/^\/api/, '');
 
 	if (await plugin.hasKey(req.user.uid)) {
 		if (!res.locals.isAPI) {
@@ -489,6 +489,7 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
+		delete req.session.tfa; // this is set to true after successful 2FA login, so we need to clear it here to force a re-challenge
 
 		if (!res.locals.isAPI) {
 			controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
