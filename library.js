@@ -153,6 +153,11 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res);
 	});
 
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', middlewares, async (req, res) => {
+		await plugin.removeAllDevices(req.uid);
+		helpers.formatApiResponse(200, res);
+	});
+
 	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/register', middlewares, async (req, res) => {
 		const attestationExpectations = {
 			challenge: req.session.registrationRequest.challenge,
@@ -392,6 +397,10 @@ plugin.disassociate = async (uid) => {
 	]);
 
 	// Clear U2F keys
+	await plugin.removeAllDevices(uid);
+};
+
+plugin.removeAllDevices = async (uid) => {
 	const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
 	await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
 	await db.delete(`2factor:webauthn:${uid}`);
