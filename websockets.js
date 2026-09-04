@@ -1,5 +1,6 @@
 'use strict';
 
+const util = require('util');
 const base32 = require('thirty-two');
 const notp = require('notp');
 const qrcode = require('qrcode');
@@ -8,6 +9,8 @@ const user = nodebb.require('./src/user');
 const nconf = nodebb.require('nconf');
 const utils = nodebb.require('./src/utils');
 const meta = nodebb.require('./src/meta');
+const db = nodebb.require('./src/database');
+const winston = nodebb.require('winston');
 
 const parent = module.parent.exports;
 const Sockets = {
@@ -39,7 +42,15 @@ Sockets.confirm = async function (socket, data) {
 
 	if (confirmed) {
 		await parent.save(socket.uid, key);
-		socket.request.session.tfa = true; // eliminate re-challenge on registration
+		// Write tfa flag to the session store (not the frozen socket.request.session snapshot)
+		const sessionData = socket.request.session;
+		sessionData.tfa = true;
+		const sessionId = socket.request.signedCookies[nconf.get('sessionKey')];
+		try {
+			await util.promisify(db.sessionStore.set).bind(db.sessionStore)(sessionId, sessionData);
+		} catch (err) {
+			winston.warn(`[plugin/2factor] Failed to persist session: ${err.message}`);
+		}
 	} else {
 		throw new Error('[[error:invalid-data]]');
 	}

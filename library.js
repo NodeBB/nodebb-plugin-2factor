@@ -453,7 +453,7 @@ plugin.check = async ({ req, res }) => {
 };
 
 plugin.checkSocket = async (data) => {
-	if (!data.socket.uid || data.req.session.tfa === true) {
+	if (!data.socket.uid || data.session.tfa === true) {
 		return;
 	}
 
@@ -475,9 +475,9 @@ plugin.checkSocket = async (data) => {
 };
 
 plugin.clearSession = function (data) {
-	if (data.req.session) {
-		delete data.req.session.tfa;
-	}
+	// data.req.session is already destroyed by the time static:user.loggedOut fires
+	// (destroyAsync runs before this hook). If data.session exists (fresh from store),
+	// clear it there — but this is also typically a no-op since the session is destroyed.
 };
 
 plugin.getUsers = async () => {
