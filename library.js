@@ -5,6 +5,7 @@ const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
 const { Fido2Lib } = require('fido2-lib');
 const base64url = require('base64url');
+const crypto = require('crypto');
 
 const db = nodebb.require('./src/database');
 const nconf = nodebb.require('nconf');
@@ -14,7 +15,6 @@ const meta = nodebb.require('./src/meta');
 const groups = nodebb.require('./src/groups');
 const plugins = nodebb.require('./src/plugins');
 const notifications = nodebb.require('./src/notifications');
-const utils = nodebb.require('./src/utils');
 const routeHelpers = nodebb.require('./src/routes/helpers');
 const controllerHelpers = nodebb.require('./src/controllers/helpers');
 const SocketPlugins = nodebb.require('./src/socket.io/plugins');
@@ -57,7 +57,7 @@ plugin.init = async (params) => {
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
 	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
-	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
+	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, hostMiddleware.applyCSRF, controllers.processTotpLogin, (req, res) => {
 		req.session.tfa = true;
 		const now = Date.now();
 		req.session.meta.datetime = now;
@@ -72,7 +72,7 @@ plugin.init = async (params) => {
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
-	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, hostMiddleware.applyCSRF, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
 		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
@@ -329,6 +329,10 @@ plugin.hasKey = async (uid) => {
 	return hasTotp || hasAuthn;
 };
 
+function hashBackupCode(code) {
+	return crypto.createHash('sha256').update(code).digest('hex');
+}
+
 plugin.hasBackupCodes = async uid => db.exists(`2factor:uid:${uid}:backupCodes`);
 
 plugin.countBackupCodes = async uid => db.setCount(`2factor:uid:${uid}:backupCodes`);
@@ -336,15 +340,13 @@ plugin.countBackupCodes = async uid => db.setCount(`2factor:uid:${uid}:backupCod
 plugin.generateBackupCodes = async (uid) => {
 	const set = `2factor:uid:${uid}:backupCodes`;
 	const codes = [];
-	let code;
 
 	for (let x = 0; x < 5; x++) {
-		code = utils.generateUUID().replace('-', '').slice(0, 10);
-		codes.push(code);
+		codes.push(crypto.randomBytes(6).toString('hex'));
 	}
 
 	await db.delete(set); // Invalidate all old codes
-	await db.setAdd(set, codes); // Save new codes
+	await db.setAdd(set, codes.map(hashBackupCode)); // Save hashes only
 
 	const notification = await notifications.create({
 		bodyShort: '[[2factor:notification.backupCode.generated]]',
@@ -364,10 +366,24 @@ plugin.generateBackupCodes = async (uid) => {
 plugin.useBackupCode = async (code, uid) => {
 	const set = `2factor:uid:${uid}:backupCodes`;
 
-	const valid = await db.isSetMember(set, code);
+	if (typeof code !== 'string') {
+		return false;
+	}
+	code = code.trim().toLowerCase().replace(/[\s-]/g, '');
+	if (!code) {
+		return false;
+	}
+
+	const hashed = hashBackupCode(code);
+	// Codes generated before hashing was introduced are stored in plain text
+	const [validHashed, validLegacy] = await Promise.all([
+		db.isSetMember(set, hashed),
+		db.isSetMember(set, code),
+	]);
+	const valid = validHashed || validLegacy;
 	if (valid) {
 		// Invalidate this backup code
-		await db.setRemove(set, code);
+		await db.setRemove(set, validHashed ? hashed : code);
 
 		const notification = await notifications.create({
 			bodyShort: '[[2factor:notification.backupCode.used]]',
