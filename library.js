@@ -1,5 +1,6 @@
 'use strict';
 
+const util = require('util');
 const passport = nodebb.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
@@ -493,6 +494,20 @@ plugin.adjustRelogin = async ({ req, res }) => {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
 		delete req.session.tfa; // this is set to true after successful 2FA login, so we need to clear it here to force a re-challenge
+
+		// Persist the re-challenge state to the session store. This hook fires
+		// after the response is sent, so the in-memory session change is not
+		// auto-saved. Connected sockets read the store via validateSession
+		// (checkSocket); without persisting, they keep full access and can
+		// regenerate/confirm/disassociate the 2FA factor.
+		const sessionId = req.sessionID || (req.session && req.session.id);
+		if (sessionId) {
+			try {
+				await util.promisify(db.sessionStore.set).bind(db.sessionStore)(sessionId, req.session);
+			} catch (err) {
+				winston.warn(`[plugin/2factor] Failed to persist re-challenge session: ${err.message}`);
+			}
+		}
 
 		if (!res.locals.isAPI) {
 			controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);
