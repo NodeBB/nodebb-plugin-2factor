@@ -86,6 +86,9 @@ plugin.init = async (params) => {
 		async (user, done) => {
 			try {
 				const key = await plugin.get(user.uid);
+				if (!key) {
+					return done(new Error('[[2factor:login.failure]]'));
+				}
 				return done(null, key, 30);
 			} catch (e) {
 				return done(e);
