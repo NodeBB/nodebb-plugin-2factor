@@ -17,7 +17,7 @@
 					<div class="form-group">
 						<input type="text" class="form-control form-control-large text-center" id="code" name="code" autocomplete="off" />
 					</div>
-					<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
+					<input type="hidden" name="csrf_token" value="{config.csrf_token}" />
 					<button class="btn btn-block btn-primary text-center" type="submit">{{tx("2factor:login.verify")}}</button>
 
 					<hr />
