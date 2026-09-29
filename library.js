@@ -403,14 +403,23 @@ plugin.disassociate = async (uid) => {
 };
 
 plugin.removeDevice = async (uid, id) => {
-	await db.sortedSetRemove('2factor:webauthn:counters', id);
-	await db.deleteObjectField(`2factor:webauthn:${uid}`, id);
-	await db.deleteObjectField(`2factor:webauthn:${uid}:names`, id);
+	if (await userOwnsWebauthId(uid, id)) {
+		await db.sortedSetRemove('2factor:webauthn:counters', id);
+		await db.deleteObjectField(`2factor:webauthn:${uid}`, id);
+		await db.deleteObjectField(`2factor:webauthn:${uid}:names`, id);
+	}
 };
 
 plugin.renameDevice = async (uid, id, newName) => {
-	await db.setObjectField(`2factor:webauthn:${uid}:names`, id, newName);
+	if (await userOwnsWebauthId(uid, id)) {
+		await db.setObjectField(`2factor:webauthn:${uid}:names`, id, newName);
+	}
 };
+
+async function userOwnsWebauthId(uid, id) {
+	const owner = await db.getObjectField(`2factor:webauthn:${uid}`, id);
+	return String(owner) === String(uid);
+}
 
 plugin.overrideUid = async ({ req, locals }) => {
 	if (req.uid && await plugin.hasKey(req.uid) && req.session.tfa !== true) {
