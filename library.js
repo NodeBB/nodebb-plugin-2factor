@@ -417,8 +417,7 @@ plugin.renameDevice = async (uid, id, newName) => {
 };
 
 async function userOwnsWebauthId(uid, id) {
-	const owner = await db.getObjectField(`2factor:webauthn:${uid}`, id);
-	return String(owner) === String(uid);
+	return await db.isObjectField(`2factor:webauthn:${uid}`, id);
 }
 
 plugin.overrideUid = async ({ req, locals }) => {
