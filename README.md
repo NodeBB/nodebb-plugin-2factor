@@ -10,6 +10,11 @@ devices and enabling this enhanced security on their account.
 
 ## Version History
 
+* v8.x
+	* NodeBB v4.x compatibility
+	* WebSocket connections are now enforced for the second factor, matching the HTTP route protection.
+	* Disabling a second factor (TOTP, a WebAuthn device, or all WebAuthn keys) now requires the account password. SSO-only users without a local password are not challenged.
+	* A number of security fixes.
 * v7.x
 	* Logged-in users who have not passed the second-factor are now treated as guests. Prior to this, they were considered logged in, but were not able to physically navigate away from the 2FA challenge.
 	* v7.0.2 to v7.2.2 (inclusive) allowed routes mounted to `/api/v3` to not be protected by this plugin. This allowed automated processes to interact via API with 2FA-protected accounts without being challenged for a second factor. As of v7.3.0, this exception was removed as best-practice for security.
