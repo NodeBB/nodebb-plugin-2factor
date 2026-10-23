@@ -124,7 +124,8 @@ describe('nodebb-plugin-2factor', () => {
 			const result = await request.get(`${nconf.get('url')}/api/categories`, { jar });
 			assert.equal(result.response.statusCode, 200);
 			assert.ok(result.response.headers['x-redirect']);
-			assert.ok(decodeURIComponent(result.response.headers['x-redirect']).includes('/me/2factor'));
+			const redirect = decodeURIComponent(result.response.headers['x-redirect']);
+			assert.ok(redirect.includes('/user/tfaenforceduser/2factor'), `expected redirect to /user/tfaenforceduser/2factor, got: ${redirect}`);
 		});
 
 		it('should return a registration payload (QR + key) via GET', async function () {

@@ -486,7 +486,9 @@ plugin.check = async ({ req, res }) => {
 		}
 	} else if (tfaEnforcedGroups.length && (await groups.isMemberOfGroups(req.uid, tfaEnforcedGroups)).includes(true)) {
 		if (req.url.startsWith('/admin') || (!req.url.startsWith('/admin') && !req.url.match('2factor'))) {
-			controllerHelpers.redirect(res, `/me/2factor?next=${redirect}`);
+			const userslug = await user.getUserField(req.uid, 'userslug');
+			const target = userslug ? `/user/${userslug}/2factor?next=${redirect}` : `/me/2factor?next=${redirect}`;
+			controllerHelpers.redirect(res, target);
 		}
 	}
 
