@@ -6,6 +6,8 @@ const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
 const { Fido2Lib } = require('fido2-lib');
 const base64url = require('base64url');
+const base32 = require('thirty-two');
+const qrcode = require('qrcode');
 
 const db = nodebb.require('./src/database');
 const nconf = nodebb.require('nconf');
@@ -16,7 +18,6 @@ const groups = nodebb.require('./src/groups');
 const plugins = nodebb.require('./src/plugins');
 const notifications = nodebb.require('./src/notifications');
 const utils = nodebb.require('./src/utils');
-const routeHelpers = nodebb.require('./src/routes/helpers');
 const controllerHelpers = nodebb.require('./src/controllers/helpers');
 const SocketPlugins = nodebb.require('./src/socket.io/plugins');
 
@@ -121,6 +122,7 @@ plugin.init = async (params) => {
 };
 
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
+	const routeHelpers = nodebb.require('./src/routes/helpers');
 	const middlewares = [
 		middleware.ensureLoggedIn,
 	];
@@ -228,6 +230,33 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res, {
 			next: guard(req.query.next || '/'),
 		});
+	});
+
+	routeHelpers.setupApiRoute(router, 'get', '/2factor/totp/register', middlewares, async (req, res) => {
+		const key = utils.generateUUID();
+		const encodedKey = base32.encode(key).toString().replace(/=/g, '');
+
+		const { userslug } = await user.getUserFields(req.uid, ['userslug']);
+		const baseUrl = nconf.get('url').replace(/.*?:\/\//g, '');
+		const issuer = encodeURIComponent(meta.config.title).replace('+', '%20');
+		const account = encodeURIComponent(`${userslug}@${baseUrl}`).replace('+', '%20');
+		const otpUrl = `otpauth://totp/${issuer}:${account}?issuer=${issuer}&secret=${encodedKey.replace('+', '%20')}&period=30`;
+		const qr = await qrcode.toDataURL(otpUrl);
+
+		helpers.formatApiResponse(200, res, { qr, key, encodedKey });
+	});
+
+	routeHelpers.setupApiRoute(router, 'post', '/2factor/totp/register', middlewares, async (req, res) => {
+		const { key, token } = req.body;
+		const confirmed = typeof key === 'string' && typeof token === 'string' && notp.totp.verify(token, key);
+		if (!confirmed) {
+			return helpers.formatApiResponse(400, res, new Error('[[error:invalid-data]]'));
+		}
+
+		await plugin.save(req.uid, key);
+		req.session.tfa = true; // eliminate re-challenge on registration
+
+		helpers.formatApiResponse(200, res);
 	});
 
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', middlewares, async (req, res) => {

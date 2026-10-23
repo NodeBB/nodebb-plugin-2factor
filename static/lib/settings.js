@@ -19,32 +19,33 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 		}
 	};
 
-	Settings.setupTotp = function () {
-		socket.emit('plugins.2factor.regenerate', async (err, data) => {
-			if (err) {
-				return alerts.error(err);
-			}
+	Settings.setupTotp = async function () {
+		let data;
+		try {
+			data = await api.get('/plugins/2factor/totp/register');
+		} catch (e) {
+			return alerts.error(e);
+		}
 
-			const message = await benchpress.render('partials/2factor/generate', data);
-			const size = 'lg';
+		const message = await benchpress.render('partials/2factor/generate', data);
+		const size = 'lg';
 
-			var modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
-			var formEl = modal.find('form');
-			var confirmEl = modal.find('button[data-action="confirm"]');
-			var codeEl = modal.find('.2fa-confirm');
+		var modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
+		var formEl = modal.find('form');
+		var confirmEl = modal.find('button[data-action="confirm"]');
+		var codeEl = modal.find('.2fa-confirm');
 
-			confirmEl.on('click', function () {
-				Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
-			});
+		confirmEl.on('click', function () {
+			Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
+		});
 
-			formEl.on('submit', function (e) {
-				e.preventDefault();
-				Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
-			});
+		formEl.on('submit', function (e) {
+			e.preventDefault();
+			Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);
+		});
 
-			modal.on('shown.bs.modal', function () {
-				codeEl.focus();
-			});
+		modal.on('shown.bs.modal', function () {
+			codeEl.focus();
 		});
 	};
 
@@ -197,17 +198,14 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 	};
 
 	Settings.verifyTotp = function (key, token, modal) {
-		socket.emit('plugins.2factor.confirm', {
+		api.post('/plugins/2factor/totp/register', {
 			key: key,
 			token: token,
-		}, function (err) {
-			if (err) {
-				return alerts.error(err);
-			}
+		}).then(() => {
 			modal.modal('hide');
 			ajaxify.refresh();
 			alerts.success('[[2factor:generate.success]]');
-		});
+		}).catch(alerts.error);
 	};
 
 	Settings.generateBackupCodes = function () {
