@@ -10,7 +10,6 @@
 		{ "hook": "filter:user.profileMenu", "method": "addProfileItem" },
 		{ "hook": "response:router.page", "method": "check" },
 		{ "hook": "filter:middleware.buildHeader", "method": "overrideUid" },
-		{ "hook": "static:user.loggedOut", "method": "clearSession" },
 		{ "hook": "static:sockets.validateSession", "method": "checkSocket" },
 		{ "hook": "response:auth.relogin", "method": "adjustRelogin" },
 

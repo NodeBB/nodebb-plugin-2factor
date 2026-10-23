@@ -1,7 +1,7 @@
 'use strict';
 
 define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts', 'modals'], function (Settings, autocomplete, alerts, modals) {
-	var ACP = {};
+	const ACP = {};
 
 	ACP.init = function () {
 		Settings.load('2factor', $('.2factor-settings'));
@@ -21,8 +21,8 @@ define('admin/plugins/2factor', ['settings', 'autocomplete', 'alerts', 'modals']
 		});
 
 		autocomplete.user($('input[name="disassociate"]'), function (ev, ui) {
-			var uid = ui.item.user.uid;
-			var username = ui.item.user.name;
+			const uid = ui.item.user.uid;
+			const username = ui.item.user.name;
 
 			modals.confirm('Are you sure you wish to deactivate 2FA for <strong>' + username + '</strong>?', function (confirm) {
 				if (confirm) {

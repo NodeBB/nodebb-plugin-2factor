@@ -1,7 +1,7 @@
 'use strict';
 
 define('forum/login-totp', [], function () {
-	var Plugin = {};
+	const Plugin = {};
 
 	Plugin.init = async () => {
 		const codeEl = document.getElementById('code');

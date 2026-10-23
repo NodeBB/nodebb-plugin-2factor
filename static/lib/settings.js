@@ -1,7 +1,7 @@
 'use strict';
 
 define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], function (api, alerts, modals, benchpress) {
-	var Settings = {};
+	const Settings = {};
 
 	Settings.init = function () {
 		document.querySelector('#content .list-group').addEventListener('click', (e) => {
@@ -30,10 +30,10 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 		const message = await benchpress.render('partials/2factor/generate', data);
 		const size = 'lg';
 
-		var modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
-		var formEl = modal.find('form');
-		var confirmEl = modal.find('button[data-action="confirm"]');
-		var codeEl = modal.find('.2fa-confirm');
+		const modal = await modals.dialog({ title: '[[2factor:generate.title]]', message, size });
+		const formEl = modal.find('form');
+		const confirmEl = modal.find('button[data-action="confirm"]');
+		const codeEl = modal.find('.2fa-confirm');
 
 		confirmEl.on('click', function () {
 			Settings.verifyTotp(data.key, codeEl.val().replace(/\s/g, ''), modal);

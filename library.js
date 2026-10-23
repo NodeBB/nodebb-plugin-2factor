@@ -515,12 +515,6 @@ plugin.checkSocket = async (data) => {
 	}
 };
 
-plugin.clearSession = function (data) {
-	// data.req.session is already destroyed by the time static:user.loggedOut fires
-	// (destroyAsync runs before this hook). If data.session exists (fresh from store),
-	// clear it there — but this is also typically a no-op since the session is destroyed.
-};
-
 plugin.getUsers = async () => {
 	const uids = await db.getObjectKeys('2factor:uid:key');
 	return user.getUsersFields(uids, ['username', 'userslug', 'picture']);
@@ -530,7 +524,9 @@ plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
-		delete req.session.tfa; // this is set to true after successful 2FA login, so we need to clear it here to force a re-challenge
+
+		// this is set to true after successful 2FA login
+		delete req.session.tfa; // clear it here to force a re-challenge
 
 		// Persist the re-challenge state to the session store. This hook fires
 		// after the response is sent, so the in-memory session change is not
