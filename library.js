@@ -123,6 +123,7 @@ plugin.init = async (params) => {
 
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	const routeHelpers = nodebb.require('./src/routes/helpers');
+	const pluginMiddlewares = require('./lib/middlewares');
 	const middlewares = [
 		middleware.ensureLoggedIn,
 	];
@@ -154,12 +155,12 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res);
 	});
 
-	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn/device/:id', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn/device/:id', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await plugin.removeDevice(req.uid, req.params.id);
 		helpers.formatApiResponse(200, res);
 	});
 
-	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await plugin.removeAllAuthn(req.uid);
 		helpers.formatApiResponse(200, res);
 	});
@@ -264,7 +265,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res);
 	});
 
-	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', middlewares, async (req, res) => {
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await db.deleteObjectField('2factor:uid:key', req.uid);
 
 		helpers.formatApiResponse(200, res);
@@ -272,8 +273,11 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 };
 
 plugin.appendConfig = async (config) => {
-	const hasKey = await plugin.hasKey(config.uid);
-	config['2factor'] = { hasKey };
+	const [hasKey, hasPassword] = await Promise.all([
+		plugin.hasKey(config.uid),
+		config.uid ? user.hasPassword(config.uid) : false,
+	]);
+	config['2factor'] = { hasKey, hasPassword };
 	return config;
 };
 

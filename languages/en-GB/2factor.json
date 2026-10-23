@@ -25,6 +25,7 @@
 	"user.manage.regenerate": "Regenerate",
 	"user.manage.disableTotp": "Are you sure you wish to dissociate your authenticator app?",
 	"user.manage.disableAuthn": "Are you sure you wish to dissociate your hardware key?",
+	"user.manage.confirmPassword": "For security, enter your account password to confirm:",
 
 	"generate.title": "Generate Token &amp; Set up Device",
 	"generate.text": "The QR code shown above will allow you to associate your mobile device (via the Authenticator app or a suitable variant) with your account on this website. Simply scan it via the app, and key in the generated token to confirm.",

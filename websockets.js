@@ -7,10 +7,6 @@ const Sockets = {
 	admin: {},
 };
 
-Sockets.disassociate = async (socket) => {
-	await parent.disassociate(socket.uid);
-};
-
 Sockets.admin.disassociate = async (socket, data) => {
 	const isAdmin = await user.isAdministrator(socket.uid);
 	if (isAdmin) {

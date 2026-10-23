@@ -49,10 +49,28 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 		});
 	};
 
+	// Prompt for the account password before a destructive 2FA action.
+	// SSO-only users have no local password, so the challenge is skipped.
+	Settings.withPassword = function (onPassword) {
+		if (!config['2factor'] || !config['2factor'].hasPassword) {
+			return onPassword();
+		}
+		modals.promptPassword({
+			title: '[[2factor:user.manage.confirmPassword]]',
+		}).then((password) => {
+			if (!password || !password.trim()) {
+				return; // user cancelled
+			}
+			onPassword(password);
+		});
+	};
+
 	Settings.disableTotp = () => {
 		modals.confirm('[[2factor:user.manage.disableTotp]]', function (confirm) {
 			if (confirm) {
-				api.del('/plugins/2factor/totp').then(ajaxify.refresh).catch(alerts.error);
+				Settings.withPassword((password) => {
+					api.del('/plugins/2factor/totp', { password }).then(ajaxify.refresh).catch(alerts.error);
+				});
 			}
 		});
 	};
@@ -107,12 +125,14 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 	Settings.removeDevice = (deviceId) => {
 		modals.confirm('[[2factor:authn.remove.confirm]]', function (confirm) {
 			if (confirm) {
-				api.del(`/plugins/2factor/authn/device/${deviceId}`)
-					.then(() => {
-						alerts.success('[[2factor:authn.removed]]');
-						Settings.renderDevicesList();
-					})
-					.catch(alerts.error);
+				Settings.withPassword((password) => {
+					api.del(`/plugins/2factor/authn/device/${deviceId}`, { password })
+						.then(() => {
+							alerts.success('[[2factor:authn.removed]]');
+							Settings.renderDevicesList();
+						})
+						.catch(alerts.error);
+				});
 			}
 		});
 	};
@@ -120,7 +140,9 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 	Settings.disableAuthn = () => {
 		modals.confirm('[[2factor:user.manage.disableAuthn]]', function (confirm) {
 			if (confirm) {
-				api.del('/plugins/2factor/authn').then(ajaxify.refresh).catch(alerts.error);
+				Settings.withPassword((password) => {
+					api.del('/plugins/2factor/authn', { password }).then(ajaxify.refresh).catch(alerts.error);
+				});
 			}
 		});
 	};

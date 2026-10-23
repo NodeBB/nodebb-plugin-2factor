@@ -215,13 +215,31 @@ describe('nodebb-plugin-2factor', () => {
 			assert.ok(await plugin.hasAuthn(uid));
 			assert.equal((await plugin.getAuthnDevices(uid)).length, 2);
 
+			// Disabling 2FA requires the account password (user has one set)
 			const result = await request.delete(`${nconf.get('url')}/api/v3/plugins/2factor/authn`, {
 				jar,
+				body: { password: 'tfaPass123' },
 				headers: { 'x-csrf-token': csrf_token },
 			});
 			assert.equal(result.response.statusCode, 200);
 			assert.ok(!(await plugin.hasAuthn(uid)));
 			assert.equal((await plugin.getAuthnDevices(uid)).length, 0);
+		});
+
+		it('should reject DELETE /2factor/authn without a valid password', async function () {
+			this.timeout(30000);
+			await addFakeDevice('device-3', 'Rekeyed');
+			assert.ok(await plugin.hasAuthn(uid));
+
+			const result = await request.delete(`${nconf.get('url')}/api/v3/plugins/2factor/authn`, {
+				jar,
+				body: { password: 'wrong-password' },
+				headers: { 'x-csrf-token': csrf_token },
+			});
+			assert.equal(result.response.statusCode, 401);
+			// Device must remain in place
+			assert.ok(await plugin.hasAuthn(uid));
+			assert.equal((await plugin.getAuthnDevices(uid)).length, 1);
 		});
 	});
 });
