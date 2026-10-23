@@ -170,4 +170,58 @@ describe('nodebb-plugin-2factor', () => {
 			assert.ok(!result.response.headers['x-redirect']);
 		});
 	});
+
+	describe('WebAuthn bulk disable (DELETE /2factor/authn)', () => {
+		const totpKey = 'JBSWY3DPEHPK3PXP';
+		let uid;
+		let jar;
+		let csrf_token;
+
+		const addFakeDevice = async (id, name) => {
+			await db.setObjectField(`2factor:webauthn:${uid}`, id, 'fake-public-key-pem');
+			await db.sortedSetAdd('2factor:webauthn:counters', 1, id);
+			if (name) {
+				await db.setObjectField(`2factor:webauthn:${uid}:names`, id, name);
+			}
+		};
+
+		before(async function () {
+			this.timeout(30000);
+			uid = await user.create({ username: 'tfawebauthnuser', password: 'tfaPass123', gdpr_consent: true });
+			// TOTP is used to complete the second factor (easy to generate in a test);
+			// WebAuthn devices are added afterwards, as a user disabling a hardware key
+			// has already passed the second-factor challenge to reach the settings page.
+			await plugin.save(uid, totpKey);
+			const login = await helpers.loginUser('tfawebauthnuser', 'tfaPass123');
+			jar = login.jar;
+			csrf_token = login.csrf_token;
+
+			// Complete the second factor so the session is fully authenticated
+			const totp = notp.totp.gen(totpKey);
+			const login2fa = await request.post(`${nconf.get('url')}/login/2fa/totp`, {
+				body: { code: totp },
+				jar,
+				maxRedirect: 0,
+				redirect: 'manual',
+			});
+			assert.ok([302, 307].includes(login2fa.response.statusCode));
+
+			await addFakeDevice('device-1', 'Yubikey');
+			await addFakeDevice('device-2', 'Titan');
+		});
+
+		it('should remove all WebAuthn devices via DELETE /2factor/authn', async function () {
+			this.timeout(30000);
+			assert.ok(await plugin.hasAuthn(uid));
+			assert.equal((await plugin.getAuthnDevices(uid)).length, 2);
+
+			const result = await request.delete(`${nconf.get('url')}/api/v3/plugins/2factor/authn`, {
+				jar,
+				headers: { 'x-csrf-token': csrf_token },
+			});
+			assert.equal(result.response.statusCode, 200);
+			assert.ok(!(await plugin.hasAuthn(uid)));
+			assert.equal((await plugin.getAuthnDevices(uid)).length, 0);
+		});
+	});
 });

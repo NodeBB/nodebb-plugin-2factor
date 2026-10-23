@@ -159,6 +159,11 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		helpers.formatApiResponse(200, res);
 	});
 
+	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', middlewares, async (req, res) => {
+		await plugin.removeAllAuthn(req.uid);
+		helpers.formatApiResponse(200, res);
+	});
+
 	routeHelpers.setupApiRoute(router, 'post', '/2factor/authn/register', middlewares, async (req, res) => {
 		const attestationExpectations = {
 			challenge: req.session.registrationRequest.challenge,
@@ -436,6 +441,15 @@ plugin.removeDevice = async (uid, id) => {
 		await db.sortedSetRemove('2factor:webauthn:counters', id);
 		await db.deleteObjectField(`2factor:webauthn:${uid}`, id);
 		await db.deleteObjectField(`2factor:webauthn:${uid}:names`, id);
+	}
+};
+
+plugin.removeAllAuthn = async (uid) => {
+	const keyIds = await db.getObjectKeys(`2factor:webauthn:${uid}`);
+	if (keyIds.length) {
+		await db.sortedSetRemove('2factor:webauthn:counters', keyIds);
+		await db.delete(`2factor:webauthn:${uid}`);
+		await db.delete(`2factor:webauthn:${uid}:names`);
 	}
 };
 
