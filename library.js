@@ -6,6 +6,7 @@ const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
 const { Fido2Lib } = require('fido2-lib');
 const base64url = require('base64url');
+const crypto = require('crypto');
 const base32 = require('thirty-two');
 const qrcode = require('qrcode');
 
@@ -59,7 +60,7 @@ plugin.init = async (params) => {
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
 	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
-	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
+	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, hostMiddleware.applyCSRF, controllers.processTotpLogin, (req, res) => {
 		req.session.tfa = true;
 		const now = Date.now();
 		req.session.meta.datetime = now;
@@ -74,7 +75,7 @@ plugin.init = async (params) => {
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
-	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, hostMiddleware.applyCSRF, controllers.processBackup, (req, res) => {
 		req.session.tfa = true;
 		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
@@ -378,11 +379,9 @@ plugin.countBackupCodes = async uid => db.setCount(`2factor:uid:${uid}:backupCod
 plugin.generateBackupCodes = async (uid) => {
 	const set = `2factor:uid:${uid}:backupCodes`;
 	const codes = [];
-	let code;
 
 	for (let x = 0; x < 5; x++) {
-		code = utils.generateUUID().replace('-', '').slice(0, 10);
-		codes.push(code);
+		codes.push(crypto.randomBytes(6).toString('hex'));
 	}
 
 	await db.delete(set); // Invalidate all old codes
