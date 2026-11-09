@@ -3,14 +3,18 @@
 
 	<div class="row m-0">
 		<div id="spy-container" class="col-12 px-2 mb-4" tabindex="0">
-			<h5 class="fw-bold tracking-tight settings-header">{{tx("2factor:intro.title")}}</h5>
-			<img src="data:image/png;base64,{image}" class="float-end" alt="User Profile" />
-			<p>
-				{{tx("2factor:admin.intro.one")}}
-			</p>
-			<p>
-				{{tx("2factor:admin.intro.two")}}
-			</p>
+			<details>
+				<summary>{{tx("2factor:intro.title")}}</summary>
+				<img src="data:image/png;base64,{image}" class="float-end" alt="User Profile" />
+				<p>
+					{{tx("2factor:admin.intro.one")}}
+				</p>
+				<p>
+					{{tx("2factor:admin.intro.two")}}
+				</p>
+			</details>
+
+			<hr />
 
 			<form role="form" class="2factor-settings clearfix">
 				<div class="mb-4">
@@ -60,6 +64,17 @@
 								{{{ end }}}
 							</select>
 						</div>
+					</div>
+				</div>
+
+				<div class="mb-4">
+					<h5 class="fw-bold tracking-tight settings-header">{{tx("2factor:admin.trust.title")}}</h5>
+					<div class="mb-3">
+						<div class="form-group">
+							<label for="tfaDeviceTrustDays">{{tx("2factor:admin.trust.help")}}</label>
+							<input class="form-control" type="number" id="tfaDeviceTrustDays" name="tfaDeviceTrustDays" min="0" max="365" step="1" value="30" />
+						</div>
+						<p class="form-text">{{tx("2factor:admin.trust.note")}}</p>
 					</div>
 				</div>
 			</form>

@@ -242,4 +242,240 @@ describe('nodebb-plugin-2factor', () => {
 			assert.equal((await plugin.getAuthnDevices(uid)).length, 1);
 		});
 	});
+
+	describe('Device trust ("don\'t ask again for x days")', () => {
+		const totpKey = 'JBSWY3DPEHPK3PXP';
+		const reauthPage = '/user/tfatrustuser/edit/password';
+		let uid;
+		let jar;
+		let csrf_token;
+
+		// the newest session of the user, read straight from the session store
+		const currentSession = async () => {
+			const sids = await db.getSortedSetRange(`uid:${uid}:sessions`, 0, -1);
+			const sid = sids[sids.length - 1];
+			return await db.sessionStoreGet(sid);
+		};
+
+		const setSession = async (session) => {
+			const sids = await db.getSortedSetRange(`uid:${uid}:sessions`, 0, -1);
+			const sid = sids[sids.length - 1];
+			await db.sessionStore.set(sid, session);
+		};
+
+		// a brand new jar => a brand new device (no device cookie)
+		const login = async () => {
+			const result = await helpers.loginUser('tfatrustuser', 'tfaPass123');
+			jar = result.jar;
+			csrf_token = result.csrf_token;
+			return result;
+		};
+
+		// password-only sign-in, reusing the existing jar (i.e. the same device)
+		const relogin = async () => {
+			const token = await helpers.getCsrfToken(jar);
+			const result = await request.post(`${nconf.get('url')}/login`, {
+				body: { username: 'tfatrustuser', password: 'tfaPass123', noscript: 'true' },
+				jar,
+				maxRedirect: 0,
+				redirect: 'manual',
+				headers: { 'x-csrf-token': token },
+			});
+			return { result, csrf_token: token };
+		};
+
+		const completeTotp = async (body = {}) => {
+			const code = notp.totp.gen(totpKey);
+			const result = await request.post(`${nconf.get('url')}/login/2fa/totp`, {
+				body: { code, ...body },
+				jar,
+				maxRedirect: 0,
+				redirect: 'manual',
+			});
+			return result;
+		};
+
+		// express signs the cookie value, the name is unchanged
+		const deviceCookie = () => jar.getCookiesSync(nconf.get('url'))
+			.find(c => c.key === '2fa_device');
+
+		before(async function () {
+			this.timeout(30000);
+			uid = await user.create({ username: 'tfatrustuser', password: 'tfaPass123', gdpr_consent: true });
+			await plugin.save(uid, totpKey);
+			await meta.settings.set('2factor', { tfaDeviceTrustDays: '30' });
+		});
+
+		after(async function () {
+			this.timeout(30000);
+			await meta.settings.set('2factor', { tfaDeviceTrustDays: '0' });
+		});
+
+		it('should offer the checkbox when a trust window is configured', async function () {
+			this.timeout(30000);
+			await login();
+			const page = await request.get(`${nconf.get('url')}/login/2fa/totp`, { jar });
+			assert.equal(page.response.statusCode, 200);
+			assert.ok(page.body.includes('name="trust"'), 'trust checkbox should be rendered');
+			assert.ok(page.body.includes('30'), 'trust window should be shown to the user');
+		});
+
+		it('should record the trusted device when the box is checked', async function () {
+			this.timeout(30000);
+			const result = await completeTotp({ trust: '1' });
+			assert.ok([302, 307].includes(result.response.statusCode));
+
+			const devices = await plugin.getTrustedDevices(uid);
+			assert.equal(devices.length, 1, 'exactly one device should be trusted');
+			// admin configured 30 days; allow for test-clock slack
+			assert.ok(devices[0].expires > Date.now() + (29 * 24 * 60 * 60 * 1000), `expected ~30 days, got ${devices[0].expires}`); // 1 day
+			assert.ok(devices[0].expires <= Date.now() + (30 * 24 * 60 * 60 * 1000), `expected no more than 30 days, got ${devices[0].expires}`); // 1 day
+
+			const record = await db.getObject(`2factor:device:${devices[0].token}`);
+			assert.equal(String(record.uid), String(uid), 'the device token must be bound to the uid that granted it');
+
+			assert.ok(deviceCookie(), 'a long-lived cookie should be handed to the browser');
+		});
+
+		it('should skip the second factor on a trusted device after logout and re-login', async function () {
+			this.timeout(30000);
+			await helpers.logoutUser(jar);
+			const re = await relogin();
+			assert.ok([302, 307].includes(re.result.response.statusCode));
+			assert.ok(
+				!re.result.response.headers.location.includes('/login/2fa'),
+				`no second factor expected, redirected to ${re.result.response.headers.location}`
+			);
+
+			// the first page request on the new session must be served without a 2FA challenge
+			const page = await request.get(`${nconf.get('url')}/notifications`, {
+				jar, maxRedirect: 0, redirect: 'manual',
+			});
+			assert.equal(page.response.statusCode, 200, `trusted device should not be challenged, redirected to ${page.response.headers.location}`);
+
+			const session = await currentSession();
+			assert.equal(session.tfa, true, 'the new session should be authorised by the device cookie');
+		});
+
+		it('should still demand the password from a trusted device', async function () {
+			this.timeout(30000);
+			// simulate an expired re-auth window (sensitive routes require a fresh password)
+			const session = await currentSession();
+			session.meta.reAuthAt = 0;
+			await setSession(session);
+
+			const challenge = await request.get(`${nconf.get('url')}${reauthPage}`, {
+				jar, maxRedirect: 0, redirect: 'manual',
+			});
+			assert.ok([302, 307].includes(challenge.response.statusCode));
+			assert.ok(challenge.response.headers.location.includes('/login'), 'a password challenge must still be issued');
+			assert.ok(!challenge.response.headers.location.includes('/login/2fa'), 'second factor should be skipped on a trusted device');
+
+			const re = await relogin();
+			assert.ok([302, 307].includes(re.result.response.statusCode));
+			assert.ok(
+				!re.result.response.headers.location.includes('/login/2fa'),
+				`second factor should be skipped, redirected to ${re.result.response.headers.location}`
+			);
+		});
+
+		it('should still require the second factor from a new device', async function () {
+			this.timeout(30000);
+			const fresh = await login(); // fresh jar => no device cookie
+			const challenge = await request.get(`${nconf.get('url')}${reauthPage}`, {
+				jar: fresh.jar, maxRedirect: 0, redirect: 'manual',
+			});
+			assert.ok([302, 307].includes(challenge.response.statusCode));
+			assert.ok(
+				challenge.response.headers.location.includes('/login/2fa'),
+				`a new device should be challenged, got ${challenge.response.headers.location}`
+			);
+		});
+
+		it('should not trust a device when the box is not checked', async function () {
+			this.timeout(30000);
+			await plugin.revokeDevices(uid);
+			await login();
+			const result = await completeTotp();
+			assert.ok([302, 307].includes(result.response.statusCode));
+			assert.equal((await plugin.getTrustedDevices(uid)).length, 0, 'no device should be trusted');
+			assert.ok(!deviceCookie(), 'no device cookie should be set');
+		});
+
+		it('should honour trust granted via a backup code too', async function () {
+			this.timeout(30000);
+			const codes = await plugin.generateBackupCodes(uid);
+			await login();
+			const result = await request.post(`${nconf.get('url')}/login/2fa/backup`, {
+				body: { code: codes[0], trust: '1' },
+				jar,
+				maxRedirect: 0,
+				redirect: 'manual',
+			});
+			assert.ok([302, 307].includes(result.response.statusCode));
+
+			const devices = await plugin.getTrustedDevices(uid);
+			assert.equal(devices.length, 1);
+			assert.ok(devices[0].expires > Date.now() + (29 * 24 * 60 * 60 * 1000)); // 1 day
+
+			const re = await relogin();
+			assert.ok(!re.result.response.headers.location.includes('/login/2fa'), 'the device should be trusted after re-login');
+		});
+
+		it('should hide the checkbox and grant nothing when the admin disables the feature', async function () {
+			this.timeout(30000);
+			await meta.settings.set('2factor', { tfaDeviceTrustDays: '0' });
+			await plugin.revokeDevices(uid);
+			await login();
+			const page = await request.get(`${nconf.get('url')}/login/2fa/totp`, { jar });
+			assert.equal(page.response.statusCode, 200);
+			assert.ok(!page.body.includes('name="trust"'), 'checkbox should be hidden when the window is 0');
+
+			const result = await completeTotp({ trust: '1' });
+			assert.ok([302, 307].includes(result.response.statusCode));
+			assert.equal((await plugin.getTrustedDevices(uid)).length, 0, 'no trust window should be granted when the feature is disabled');
+			assert.ok(!deviceCookie(), 'no device cookie should be set when the feature is disabled');
+		});
+
+		it('should revoke trusted devices when the second factor is disabled', async function () {
+			this.timeout(30000);
+			await meta.settings.set('2factor', { tfaDeviceTrustDays: '30' });
+			await login();
+			await completeTotp({ trust: '1' });
+			assert.ok((await plugin.getTrustedDevices(uid)).length, 'a device should have been trusted');
+
+			const result = await request.delete(`${nconf.get('url')}/api/v3/plugins/2factor/totp`, {
+				jar,
+				body: { password: 'tfaPass123' },
+				headers: { 'x-csrf-token': csrf_token },
+			});
+			assert.equal(result.response.statusCode, 200);
+			assert.equal((await plugin.getTrustedDevices(uid)).length, 0, 'trusted devices must be revoked when the second factor is removed');
+		});
+
+		it('should offer the checkbox on the hardware key challenge too', async function () {
+			this.timeout(30000);
+			const webauthnUid = await user.create({ username: 'tfatrustwebauthn', password: 'tfaPass123', gdpr_consent: true });
+			await db.setObjectField(`2factor:webauthn:${webauthnUid}`, 'key-1', 'fake-public-key-pem');
+			await db.sortedSetAdd('2factor:webauthn:counters', 1, 'key-1');
+			await meta.settings.set('2factor', { tfaDeviceTrustDays: '30' });
+
+			const fresh = await helpers.loginUser('tfatrustwebauthn', 'tfaPass123');
+			const page = await request.get(`${nconf.get('url')}/login/2fa/authn`, { jar: fresh.jar });
+			assert.equal(page.response.statusCode, 200);
+			assert.ok(page.body.includes('name="trust"'), 'the hardware key challenge should offer the trust checkbox as well');
+		});
+
+		it('should render the trust window setting in the admin panel', async function () {
+			this.timeout(30000);
+			const admin = await user.create({ username: 'tfatrustadmin', password: 'tfaPass123', gdpr_consent: true });
+			await groups.join('administrators', admin);
+			const adminLogin = await helpers.loginUser('tfatrustadmin', 'tfaPass123');
+
+			const page = await request.get(`${nconf.get('url')}/admin/plugins/2factor`, { jar: adminLogin.jar });
+			assert.equal(page.response.statusCode, 200);
+			assert.ok(page.body.includes('name="tfaDeviceTrustDays"'), 'the admin form should expose the trust window setting');
+			assert.ok(page.body.includes('value="30"'), 'the default trust window should be offered in the form');
+		});
+	});
 });

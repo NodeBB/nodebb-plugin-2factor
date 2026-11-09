@@ -1,6 +1,6 @@
 'use strict';
 
-const util = require('util');
+const crypto = require('crypto');
 const passport = nodebb.require('passport');
 const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
@@ -59,7 +59,7 @@ plugin.init = async (params) => {
 	// 2fa Login
 	hostHelpers.setupPageRoute(router, '/login/2fa', [hostMiddleware.ensureLoggedIn], controllers.renderChoices);
 	hostHelpers.setupPageRoute(router, '/login/2fa/totp', [hostMiddleware.ensureLoggedIn], controllers.renderTotpChallenge);
-	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, (req, res) => {
+	router.post('/login/2fa/totp', hostMiddleware.ensureLoggedIn, controllers.processTotpLogin, async (req, res) => {
 		req.session.tfa = true;
 		const now = Date.now();
 		req.session.meta.datetime = now;
@@ -67,6 +67,9 @@ plugin.init = async (params) => {
 			delete req.session.tfaForce;
 			req.session.meta.reAuthAt = now;
 		}
+
+		await plugin.grantTrust(req, res);
+
 		user.auth.addSession(req.uid, req.sessionID, req.session.meta.uuid);
 		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
@@ -74,8 +77,9 @@ plugin.init = async (params) => {
 
 	// 2fa backups codes
 	hostHelpers.setupPageRoute(router, '/login/2fa/backup', [hostMiddleware.ensureLoggedIn], controllers.renderBackup);
-	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, (req, res) => {
+	router.post('/login/2fa/backup', hostMiddleware.ensureLoggedIn, controllers.processBackup, async (req, res) => {
 		req.session.tfa = true;
+		await plugin.grantTrust(req, res);
 		res.redirect(guard(nconf.get('relative_path') + (req.query.next || '/')));
 	});
 	router.put('/login/2fa/backup', hostMiddleware.requireUser, middlewares.requireSecondFactor, hostMiddleware.applyCSRF, controllers.generateBackupCodes);
@@ -157,11 +161,13 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn/device/:id', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await plugin.removeDevice(req.uid, req.params.id);
+		await plugin.revokeIfNoFactor(req.uid);
 		helpers.formatApiResponse(200, res);
 	});
 
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/authn', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await plugin.removeAllAuthn(req.uid);
+		await plugin.revokeIfNoFactor(req.uid);
 		helpers.formatApiResponse(200, res);
 	});
 
@@ -225,6 +231,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 		await plugin.updateAuthnCount(req.body.authResponse.id, count);
 
 		req.session.tfa = true;
+		await plugin.grantTrust(req, res);
 		const now = Date.now();
 		req.session.meta.datetime = now;
 		if (req.session.tfaForce) {
@@ -267,6 +274,7 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 
 	routeHelpers.setupApiRoute(router, 'delete', '/2factor/totp', [...middlewares, pluginMiddlewares.requirePassword], async (req, res) => {
 		await db.deleteObjectField('2factor:uid:key', req.uid);
+		await plugin.revokeIfNoFactor(req.uid);
 
 		helpers.formatApiResponse(200, res);
 	});
@@ -311,6 +319,117 @@ plugin.addProfileItem = function (data) {
 };
 
 plugin.get = async uid => db.getObjectField('2factor:uid:key', uid);
+
+/*
+ * Device trust (“don’t ask again for x days”).
+ *
+ * A trusted device is an opaque, high-entropy token recorded server-side against
+ * the uid, and presented to the browser as a long-lived signed cookie
+ * (2fa_device). The cookie outlives the login session, so logging out and
+ * logging in again on the same browser skips the second factor; any other
+ * device (no cookie, or a cookie issued to a different browser) is challenged.
+ * The window is enforced server-side — possession of the cookie alone is not
+ * enough, the record must match the uid and must not have expired.
+ * Revoking the account's second factor revokes every trusted device.
+ */
+const DEVICE_COOKIE = '2fa_device';
+
+plugin.getTrustDays = async () => {
+	const { tfaDeviceTrustDays } = await meta.settings.get('2factor');
+	if (tfaDeviceTrustDays === undefined) {
+		return 30; // default trust window, in days
+	}
+
+	return Math.max(0, parseInt(tfaDeviceTrustDays, 10) || 0);
+};
+
+plugin.isTrusted = async (req) => {
+	const token = req.signedCookies && req.signedCookies[DEVICE_COOKIE];
+	if (!token) {
+		return false;
+	}
+
+	const record = await db.getObject(`2factor:device:${token}`);
+	if (!record) {
+		return false;
+	}
+
+	// the token is only honoured for the account that granted it
+	return String(record.uid) === String(req.uid) && parseInt(record.expires, 10) > Date.now();
+};
+
+plugin.getTrustedDevices = async (uid) => {
+	const entries = await db.getSortedSetRangeWithScores(`2factor:uid:${uid}:devices`, 0, -1);
+	return entries
+		.filter(entry => parseInt(entry.score, 10) > Date.now())
+		.map(entry => ({ token: entry.value, expires: entry.score }));
+};
+
+plugin.revokeDevices = async (uid) => {
+	const tokens = await db.getSortedSetRange(`2factor:uid:${uid}:devices`, 0, -1);
+	await Promise.all(tokens.map(token => db.delete(`2factor:device:${token}`)));
+	await db.delete(`2factor:uid:${uid}:devices`);
+};
+
+plugin.revokeIfNoFactor = async (uid) => {
+	if (!await plugin.hasKey(uid)) {
+		await plugin.revokeDevices(uid);
+	}
+};
+
+plugin.grantTrust = async (req, res) => {
+	if (!req.body || !req.body.trust) {
+		return;
+	}
+
+	const days = await plugin.getTrustDays();
+	if (days <= 0) {
+		return;
+	}
+
+	const expires = Date.now() + (days * 24 * 60 * 60 * 1000); // 1 day
+	const token = crypto.randomBytes(24).toString('hex');
+	const key = `2factor:uid:${req.uid}:devices`;
+
+	await db.setObject(`2factor:device:${token}`, { uid: req.uid, expires });
+	await db.pexpire(`2factor:device:${token}`, expires - Date.now());
+	// prune this user's expired devices, then record the new one
+	await db.sortedSetsRemoveRangeByScore([key], '-inf', Date.now());
+	await db.sortedSetAdd(key, expires, token);
+
+	res.cookie(DEVICE_COOKIE, token, {
+		signed: true,
+		httpOnly: true,
+		maxAge: expires - Date.now(),
+		...meta.configs.cookie.get(),
+	});
+
+	const notification = await notifications.create({
+		bodyShort: `[[2factor:notification.trust, ${days}]]`,
+		bodyLong: '',
+		nid: `2factor.trust-${req.uid}-${Date.now()}`,
+		from: req.uid,
+		path: '/',
+	});
+
+	if (notification) {
+		await notifications.push(notification, [req.uid]);
+	}
+};
+
+plugin.persistSession = async (req) => {
+	const sessionId = req.sessionID || (req.session && req.session.id);
+	if (!sessionId) {
+		return;
+	}
+
+	try {
+		// express-session stores are promise-based (connect-redis, connect-mongo)
+		await db.sessionStore.set(sessionId, req.session);
+	} catch (err) {
+		winston.warn(`[plugin/2factor] Failed to persist session: ${err.message}`);
+	}
+};
 
 plugin.getAuthnKeyIds = async (uid) => {
 	const keys = await db.getObject(`2factor:webauthn:${uid}`);
@@ -431,6 +550,7 @@ plugin.disassociate = async (uid) => {
 	await Promise.all([
 		db.deleteObjectField('2factor:uid:key', uid),
 		db.delete(`2factor:uid:${uid}:backupCodes`),
+		plugin.revokeDevices(uid),
 	]);
 
 	// Clear U2F keys
@@ -469,6 +589,12 @@ async function userOwnsWebauthId(uid, id) {
 
 plugin.overrideUid = async ({ req, locals }) => {
 	if (req.uid && await plugin.hasKey(req.uid) && req.session.tfa !== true) {
+		if (await plugin.isTrusted(req)) {
+			// this device passed the second factor within the trust window
+			req.session.tfa = true;
+			return { req, locals };
+		}
+
 		locals['2factor'] = req.uid;
 		req.uid = 0;
 		delete req.user;
@@ -480,6 +606,12 @@ plugin.overrideUid = async ({ req, locals }) => {
 
 plugin.check = async ({ req, res }) => {
 	if (!req.user || req.session.tfa === true) {
+		return;
+	}
+
+	if (await plugin.isTrusted(req)) {
+		// this device is within the trust window, re-authorise the session
+		req.session.tfa = true;
 		return;
 	}
 
@@ -518,6 +650,10 @@ plugin.checkSocket = async (data) => {
 		return;
 	}
 
+	if (await plugin.isTrusted(data.req)) {
+		return;
+	}
+
 	let { tfaEnforcedGroups } = await meta.settings.get('2factor');
 	tfaEnforcedGroups = JSON.parse(tfaEnforcedGroups || '[]');
 
@@ -542,6 +678,15 @@ plugin.getUsers = async () => {
 
 plugin.adjustRelogin = async ({ req, res }) => {
 	if (await plugin.hasKey(req.uid)) {
+		if (await plugin.isTrusted(req)) {
+			// The device is within its trust window: the password challenge is still
+			// issued by the caller (forceLogin is set), only the second-factor
+			// challenge is skipped.
+			req.session.tfa = true;
+			await plugin.persistSession(req);
+			return;
+		}
+
 		req.session.forceLogin = 0;
 		req.session.tfaForce = 1;
 
@@ -553,14 +698,7 @@ plugin.adjustRelogin = async ({ req, res }) => {
 		// auto-saved. Connected sockets read the store via validateSession
 		// (checkSocket); without persisting, they keep full access and can
 		// regenerate/confirm/disassociate the 2FA factor.
-		const sessionId = req.sessionID || (req.session && req.session.id);
-		if (sessionId) {
-			try {
-				await util.promisify(db.sessionStore.set).bind(db.sessionStore)(sessionId, req.session);
-			} catch (err) {
-				winston.warn(`[plugin/2factor] Failed to persist re-challenge session: ${err.message}`);
-			}
-		}
+		await plugin.persistSession(req);
 
 		if (!res.locals.isAPI) {
 			controllerHelpers.redirect(res, `/login/2fa?next=${req.session.returnTo}`);

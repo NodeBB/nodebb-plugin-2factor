@@ -11,6 +11,8 @@
 				</div>
 				{{{ end }}}
 
+				<!-- IMPORT partials/2factor/trust.tpl -->
+
 				{{{ if (devices.length != "1") }}}
 				<p class="lead text-center">{{tx("2factor:authn.login.select")}}</p>
 				<div class="mb-3">

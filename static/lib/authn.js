@@ -40,7 +40,10 @@ define('forum/login-authn', ['api', 'alerts', 'hooks'], function (api, alerts, h
 
 	// Encode authResponse into JSON-serializable payload
 	function buildPayload(authResponse) {
+		const trustEl = document.getElementById('trust');
 		return {
+			// "don't ask again on this device" — recorded on this session only
+			...(trustEl && trustEl.checked ? { trust: 1 } : {}),
 			authResponse: {
 				id: authResponse.id,
 				rawId: arrayBufferToBase64url(authResponse.rawId),

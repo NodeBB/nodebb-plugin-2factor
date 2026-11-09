@@ -8,6 +8,7 @@
 	"notification.backupCode.generated": "A set of backup codes have just been generated for this account.",
 	"notification.backupCode.used": "A backup code was just used to log into this account",
 	"notification.failure": "Someone attempted to access your account but could not pass the second factor.",
+	"notification.trust": "{count, plural, one {A device was granted permission to skip the second factor for {count} day. If this wasn&apos;t you, you should change your password.} other {A device was granted permission to skip the second factor for {count} days. If this wasn&apos;t you, you should change your password.}}",
 
 	"user.force_2fa": "The administrator has required you to setup 2FA for your account for security purposes",
 
@@ -62,6 +63,7 @@
 	"login.verify": "Verify",
 	"login.failure": "The verification code you&apos;ve entered is not correct",
 	"login.use_backup": "Use a backup code",
+	"login.trust": "{count, plural, one {Don&apos;t ask again on this device for {count} day} other {Don&apos;t ask again on this device for {count} days}}",
 
 	"backup.text": "Enter one of your backup codes.",
 	"backup.failure": "The backup code you&apos;ve entered is not correct",
@@ -86,5 +88,9 @@
 	"admin.deactivate.search": "Search for users here...",
 
 	"admin.force_2fa": "Enforce 2factor Authentication",
-	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>"
+	"admin.force_2fa.help": "Force the users belonging to the selected groups to activate 2FA. <br /><small>This is useful to enhance security by ensuring privileged users such as administrators and moderators have this activated.</small>",
+
+	"admin.trust.title": "Device trust",
+	"admin.trust.help": "Number of days a user may skip the second-factor challenge (per device)",
+	"admin.trust.note": "The trust is tied to the browser (not the account.) This is achieved through the &quot;2fa_token&quot; cookie."
 }

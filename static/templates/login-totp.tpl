@@ -20,6 +20,7 @@
 						<input type="text" inputmode="numeric" class="form-control form-control-large text-center" id="code" name="code" autocomplete="off" />
 						<button class="btn btn-block btn-primary text-center" type="submit">{{tx("2factor:login.verify")}}</button>
 					</div>
+					<!-- IMPORT partials/2factor/trust.tpl -->
 					<input type="hidden" id="csrf" name="csrf" value="{config.csrf_token}" />
 				</form>
 

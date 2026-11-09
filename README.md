@@ -14,6 +14,7 @@ devices and enabling this enhanced security on their account.
 	* NodeBB v4.x compatibility
 	* WebSocket connections are now enforced for the second factor, matching the HTTP route protection.
 	* Disabling a second factor (TOTP, a WebAuthn device, or all WebAuthn keys) now requires the account password. SSO-only users without a local password are not challenged.
+	* When completing the second factor (token, hardware key, or backup code), users can tick "don't ask again on this device for x days". The window (default 30 days) is configurable in the plugin settings, and 0 disables the checkbox. A trusted device is an opaque token recorded against the account and handed to the browser as a long-lived signed cookie, so logging out and logging in again on the same browser skips the second factor; any other device is challenged, the window is enforced server-side (the record expires), and removing the account's second factor revokes every trusted device.
 	* A number of security fixes.
 * v7.x
 	* Logged-in users who have not passed the second-factor are now treated as guests. Prior to this, they were considered logged in, but were not able to physically navigate away from the 2FA challenge.
