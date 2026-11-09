@@ -673,7 +673,9 @@ plugin.checkSocket = async (data) => {
 
 plugin.getUsers = async () => {
 	const uids = await db.getObjectKeys('2factor:uid:key');
-	return user.getUsersFields(uids, ['username', 'userslug', 'picture']);
+	// uid and the icon fields are required for buildAvatar to render the initial
+	// fallback for users without a picture
+	return user.getUsersFields(uids, ['uid', 'username', 'userslug', 'picture', 'icon:bgColor', 'icon:text']);
 };
 
 plugin.adjustRelogin = async ({ req, res }) => {

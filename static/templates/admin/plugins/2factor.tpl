@@ -24,18 +24,16 @@
 					</p>
 
 					{{{ if users.length }}}
-					<ul class="user-list list-group list-group-horizontal">
+					<div class="d-flex flex-wrap gap-2">
 						{{{ each users }}}
-						<li class="list-group-item">
-							<a href="{users.config.relative_path}/user/{users.userslug}">
-								{{buildAvatar(@value)}}
+						<div class="badge text-bg-light p-2 border d-inline-flex align-items-center" data-uid="{users.uid}">
+							<a class="d-inline-flex align-items-center gap-2 text-decoration-none" href="{config.relative_path}/user/{users.userslug}">
+								{{buildAvatar(users, "24px", true)}}
+								<span>{users.username}</span>
 							</a>
-							<a href="{users.config.relative_path}/user/{users.userslug}">
-								{users.username}
-							</a>
-						</li>
+						</div>
 						{{{ end }}}
-					</ul>
+					</div>
 					{{{ else }}}
 					<div class="alert alert-warning text-center">
 						<em>{{tx("2factor:admin.users.none")}}</em>
