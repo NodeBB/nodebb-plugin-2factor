@@ -178,7 +178,7 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 				request = await api.get('/plugins/2factor/authn/register', {});
 			} catch (e) {
 				modal.modal('hide');
-				self.classList.remove('disabled');
+				self.classList.remove('text-muted');
 				alerts.error(e);
 				return;
 			}
@@ -210,10 +210,11 @@ define('forum/account/2factor', ['api', 'alerts', 'modals', 'benchpress'], funct
 				}).catch(alerts.error);
 			} catch (e) {
 				modal.modal('hide');
-				self.classList.remove('disabled');
+				self.classList.remove('text-muted');
 				alerts.alert({
-					message: '[[2factor:authn.error]]',
-					timeout: 2500,
+					title: '[[2factor:authn.error]]',
+					message: e.message ? `(${e.name}) ${e.message}` : '[[2factor:authn.error.detail]]',
+					timeout: 5000,
 				});
 			}
 		});

@@ -28,6 +28,7 @@
   "dependencies": {
     "arraybuffer-to-string": "^1.0.2",
     "base64url": "^3.0.1",
+    "cbor-x": "^1.6.3",
     "fido2-lib": "^3.5.8",
     "lru-cache": "^5.1.1",
     "notp": "^2.0.3",

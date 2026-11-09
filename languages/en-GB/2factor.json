@@ -45,6 +45,7 @@
 
 	"authn.modal.content": "A request to register your hardware key has been sent, please authenticate by activating the key now<br /><br /><i class=\"fa fa-spinner fa-spin\"></i>",
 	"authn.error": "Hardware key registration aborted.",
+	"authn.error.detail": "The browser rejected the WebAuthn request. Ensure this site is served over HTTPS (or localhost), and that the site URL matches the address you are browsing at.",
 	"authn.success": "Hardware key successfully registered.",
 	"authn.register.prompt": "Enter a name for this device (optional):",
 	"authn.login.lead": "Please activate your hardware key now.",

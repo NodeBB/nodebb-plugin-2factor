@@ -171,6 +171,95 @@ describe('nodebb-plugin-2factor', () => {
 		});
 	});
 
+	describe('WebAuthn registration (POST /2factor/authn/register)', () => {
+		const totpKey = 'JBSWY3DPEHPK3PXP';
+		let uid;
+		let jar;
+		let csrf_token;
+
+		const b64url = (buf) => Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+
+		before(async function () {
+			this.timeout(30000);
+			uid = await user.create({ username: 'tfareguser', password: 'tfaPass123', gdpr_consent: true });
+			await plugin.save(uid, totpKey);
+			const login = await helpers.loginUser('tfareguser', 'tfaPass123');
+			jar = login.jar;
+			csrf_token = login.csrf_token;
+			// complete the second factor so the session is fully authenticated
+			await request.post(`${nconf.get('url')}/login/2fa/totp`, {
+				body: { code: notp.totp.gen(totpKey) },
+				jar,
+				maxRedirect: 0,
+				redirect: 'manual',
+			});
+		});
+
+		it('should accept a browser-style registration (integer-keyed COSE)', async function () {
+			this.timeout(30000);
+			const cbor = require('cbor-x');
+			const crypto = require('crypto');
+
+			const getRes = await request.get(`${nconf.get('url')}/api/v3/plugins/2factor/authn/register`, {
+				jar,
+				headers: { 'x-csrf-token': csrf_token },
+			});
+			assert.equal(getRes.response.statusCode, 200);
+			const opts = getRes.body.response;
+
+			// a real authenticator emits COSE with integer keys (cbor maps decode as Map);
+			// the plugin must normalize them so fido2-lib can parse the public key
+			const { publicKey } = crypto.generateKeyPairSync('ec', {
+				namedCurve: 'prime256v1',
+				publicKeyEncoding: { format: 'jwk' },
+			});
+			const x = new Uint8Array(Buffer.from(publicKey.x, 'base64url'));
+			const y = new Uint8Array(Buffer.from(publicKey.y, 'base64url'));
+			const coseKey = new Map([[1, 2], [3, -7], [-1, 1], [-2, x], [-3, y]]); // kty=EC, alg=ES256, crv=P-256
+			const credId = crypto.randomBytes(16);
+			const credIdLen = Buffer.alloc(2);
+			credIdLen.writeUInt16BE(credId.length);
+			const authData = Buffer.concat([
+				crypto.createHash('sha256').update(opts.rp.id).digest(),
+				Buffer.from([0x41]), // UP | AT
+				Buffer.from([0, 0, 0, 0]),
+				Buffer.alloc(16),
+				credIdLen,
+				credId,
+				cbor.encode(coseKey),
+			]);
+			const attestationObject = cbor.encode({ fmt: 'none', attStmt: {}, authData });
+			const clientDataJSON = Buffer.from(JSON.stringify({
+				type: 'webauthn.create',
+				challenge: opts.challenge,
+				origin: new URL(nconf.get('url')).origin,
+				crossOrigin: false,
+			}));
+
+			const postRes = await request.post(`${nconf.get('url')}/api/v3/plugins/2factor/authn/register`, {
+				jar,
+				body: {
+					id: b64url(credId),
+					rawId: b64url(credId),
+					response: {
+						attestationObject: b64url(attestationObject),
+						clientDataJSON: b64url(clientDataJSON),
+					},
+					clientExtensionResults: {},
+					deviceName: 'Test key',
+				},
+				headers: { 'x-csrf-token': csrf_token },
+			});
+			assert.equal(postRes.response.statusCode, 200);
+
+			const id = b64url(credId);
+			const devices = await plugin.getAuthnDevices(uid);
+			assert.ok(devices.some(d => d.id === id));
+			const pem = await plugin.getAuthnPublicKey(uid, id);
+			assert.ok(pem.startsWith('-----BEGIN PUBLIC KEY'));
+		});
+	});
+
 	describe('WebAuthn bulk disable (DELETE /2factor/authn)', () => {
 		const totpKey = 'JBSWY3DPEHPK3PXP';
 		let uid;

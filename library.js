@@ -6,6 +6,7 @@ const passportTotp = require('passport-totp').Strategy;
 const notp = require('notp');
 const { Fido2Lib } = require('fido2-lib');
 const base64url = require('base64url');
+const cbor = require('cbor-x');
 const base32 = require('thirty-two');
 const qrcode = require('qrcode');
 
@@ -125,6 +126,43 @@ plugin.init = async (params) => {
 	};
 };
 
+// fido2-lib 3.5.x decodes COSE maps (integer keys) as JS Maps, then calls Object.entries() on
+// the decoded object - which yields [] for a Map. That leaves the parsed public key empty and
+// every registration fails with "Unrecognized algorithm name". Re-encode the COSE key with
+// string keys so fido2-lib's parser can read it. Real authenticators emit integer-keyed COSE.
+plugin.normalizeAttestationObject = function (attestationObject) {
+	const b64 = attestationObject.replace(/-/g, '+').replace(/_/g, '/');
+	const pad = b64.length % 4 ? '='.repeat(4 - (b64.length % 4)) : '';
+	const bytes = Uint8Array.from(atob(b64 + pad), c => c.charCodeAt(0));
+	const ao = cbor.decode(bytes);
+	const authData = new Uint8Array(ao.authData);
+	let newAuthData = authData;
+
+	if (authData.length > 53 && authData[32] & 0x40) { // AT flag: credential record present
+		const credIdLen = (authData[53] << 8) | authData[54];
+		const coseStart = 55 + credIdLen;
+		const cose = cbor.decode(authData.slice(coseStart));
+
+		if (cose instanceof Map) {
+			const keyObj = {};
+			for (const [k, v] of cose) {
+				keyObj[String(k)] = v;
+			}
+
+			const coseBytes = new Uint8Array(cbor.encode(keyObj));
+			newAuthData = new Uint8Array(coseStart + coseBytes.length);
+			newAuthData.set(authData.slice(0, coseStart), 0);
+			newAuthData.set(coseBytes, coseStart);
+		}
+	}
+
+	return base64url(Buffer.from(new Uint8Array(cbor.encode({
+		fmt: ao.fmt,
+		attStmt: ao.attStmt,
+		authData: newAuthData,
+	}))));
+};
+
 plugin.addRoutes = async ({ router, middleware, helpers }) => {
 	const routeHelpers = nodebb.require('./src/routes/helpers');
 	const pluginMiddlewares = require('./lib/middlewares');
@@ -189,6 +227,9 @@ plugin.addRoutes = async ({ router, middleware, helpers }) => {
 			const pad = base64.length % 4 ? '='.repeat(4 - (base64.length % 4)) : '';
 			const binary = atob(base64 + pad);
 			req.body.id = Uint8Array.from(binary, c => c.charCodeAt(0)).buffer;
+		}
+		if (req.body.response && typeof req.body.response.attestationObject === 'string') {
+			req.body.response.attestationObject = plugin.normalizeAttestationObject(req.body.response.attestationObject);
 		}
 		const regResult = await plugin._f2l.attestationResult(req.body, attestationExpectations);
 		const deviceName = typeof req.body.deviceName === 'string' && req.body.deviceName.trim() ? req.body.deviceName.trim() : undefined;
