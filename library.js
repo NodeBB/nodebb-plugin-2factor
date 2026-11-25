@@ -628,7 +628,14 @@ async function userOwnsWebauthId(uid, id) {
 	return await db.isObjectField(`2factor:webauthn:${uid}`, id);
 }
 
+plugin.isBearerAuth = req =>
+	!!req.loggedIn && typeof req.headers.authorization === 'string' && req.headers.authorization.startsWith('Bearer ');
+
 plugin.overrideUid = async ({ req, locals }) => {
+	if (plugin.isBearerAuth(req)) {
+		return { req, locals };
+	}
+
 	if (req.uid && await plugin.hasKey(req.uid) && req.session.tfa !== true) {
 		if (await plugin.isTrusted(req)) {
 			// this device passed the second factor within the trust window
@@ -646,6 +653,10 @@ plugin.overrideUid = async ({ req, locals }) => {
 };
 
 plugin.check = async ({ req, res }) => {
+	if (plugin.isBearerAuth(req)) {
+		return;
+	}
+
 	if (!req.user || req.session.tfa === true) {
 		return;
 	}

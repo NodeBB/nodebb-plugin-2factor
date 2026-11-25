@@ -635,4 +635,41 @@ describe('nodebb-plugin-2factor', () => {
 			assert.equal(lastResponse.body.code, 'second-factor-required');
 		});
 	});
+
+	describe('bearer token bypass (isBearerAuth / overrideUid)', () => {
+		const totpKey = 'JBSWY3DPEHPK3PXP';
+		let uid;
+
+		before(async function () {
+			this.timeout(30000);
+			uid = await user.create({ username: 'tfabeareruser', password: 'tfaPass123', gdpr_consent: true });
+			await plugin.save(uid, totpKey);
+		});
+
+		it('isBearerAuth should detect bearer token requests only', () => {
+			assert.ok(plugin.isBearerAuth({ loggedIn: true, headers: { authorization: 'Bearer abc123' } }));
+			assert.ok(!plugin.isBearerAuth({ loggedIn: true, headers: { authorization: 'Basic abc123' } }), 'Basic auth is not bearer');
+			assert.ok(!plugin.isBearerAuth({ loggedIn: true, headers: {} }), 'no auth header is not bearer');
+			assert.ok(!plugin.isBearerAuth({ loggedIn: false, headers: { authorization: 'Bearer abc123' } }), 'not logged in is not bearer');
+			assert.ok(!plugin.isBearerAuth({ loggedIn: true, headers: { authorization: 123 } }), 'non-string header is not bearer');
+		});
+
+		it('overrideUid should not zero the uid for a bearer token request', async function () {
+			this.timeout(30000);
+			const req = { uid, loggedIn: true, session: {}, headers: { authorization: 'Bearer abc123' } };
+			const locals = {};
+			const result = await plugin.overrideUid({ req, locals });
+			assert.equal(result.req.uid, uid, 'uid must not be zeroed for bearer tokens');
+			assert.ok(!('2factor' in result.locals), 'no 2factor challenge should be set');
+		});
+
+		it('overrideUid should zero the uid for a cookie session without 2FA', async function () {
+			this.timeout(30000);
+			const req = { uid, loggedIn: true, session: {}, headers: {} };
+			const locals = {};
+			const result = await plugin.overrideUid({ req, locals });
+			assert.equal(result.req.uid, 0, 'uid should be zeroed for a cookie session without 2FA');
+			assert.equal(result.locals['2factor'], uid, 'a 2factor challenge should be set');
+		});
+	});
 });
