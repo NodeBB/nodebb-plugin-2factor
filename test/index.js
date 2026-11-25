@@ -567,4 +567,72 @@ describe('nodebb-plugin-2factor', () => {
 			assert.ok(page.body.includes('value="30"'), 'the default trust window should be offered in the form');
 		});
 	});
+
+	describe('token issuance guard (integrations.writeApi)', () => {
+		const totpKey = 'JBSWY3DPEHPK3PXP';
+		let uid;
+		let noKeyUid;
+		let lastResponse;
+
+		// the write-api hook is fired by the legacy write-api plugin with this shape;
+		// exercise it directly so the test does not depend on that plugin being installed.
+		const makeData = (targetUid, session = {}) => ({
+			method: 'POST',
+			route: `/api/v1/users/${targetUid}/tokens`,
+			req: { session, headers: {} },
+			res: {
+				status: (code) => ({
+					json: (body) => {
+						lastResponse = { code, body };
+					},
+				}),
+			},
+			errorHandler: {
+				generate: (status, code, message) => ({ status, code, message }),
+			},
+		});
+
+		before(async function () {
+			this.timeout(30000);
+			uid = await user.create({ username: 'tfatokenuser', password: 'tfaPass123', gdpr_consent: true });
+			await plugin.save(uid, totpKey);
+			noKeyUid = await user.create({ username: 'tfatokennokey', password: 'tfaPass123', gdpr_consent: true });
+		});
+
+		it('should reject token generation when the second factor is not completed', async function () {
+			this.timeout(30000);
+			lastResponse = undefined;
+			await plugin.integrations.writeApi(makeData(uid, {}));
+			assert.equal(lastResponse.code, 401);
+			assert.equal(lastResponse.body.code, 'second-factor-required');
+		});
+
+		it('should allow token generation once the second factor is completed', async function () {
+			this.timeout(30000);
+			lastResponse = undefined;
+			await plugin.integrations.writeApi(makeData(uid, { tfa: true }));
+			assert.equal(lastResponse, undefined, 'no response should be sent when 2FA is satisfied');
+		});
+
+		it('should not guard accounts without a second factor', async function () {
+			this.timeout(30000);
+			lastResponse = undefined;
+			await plugin.integrations.writeApi(makeData(noKeyUid, {}));
+			assert.equal(lastResponse, undefined, 'no response should be sent for accounts without a second factor');
+		});
+
+		it('should guard WebAuthn-only accounts (the former gap)', async function () {
+			this.timeout(30000);
+			const webauthnUid = await user.create({ username: 'tfatokenwebauthn', password: 'tfaPass123', gdpr_consent: true });
+			await db.setObjectField(`2factor:webauthn:${webauthnUid}`, 'key-1', 'fake-public-key-pem');
+			await db.sortedSetAdd('2factor:webauthn:counters', 1, 'key-1');
+			assert.ok(!(await plugin.hasTotp(webauthnUid)), 'precondition: no TOTP key');
+			assert.ok(await plugin.hasAuthn(webauthnUid), 'precondition: has a WebAuthn device');
+
+			lastResponse = undefined;
+			await plugin.integrations.writeApi(makeData(webauthnUid, {}));
+			assert.equal(lastResponse.code, 401, 'WebAuthn-only accounts must be guarded (the former gap)');
+			assert.equal(lastResponse.body.code, 'second-factor-required');
+		});
+	});
 });

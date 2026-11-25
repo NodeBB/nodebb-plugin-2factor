@@ -769,20 +769,10 @@ plugin.integrations.writeApi = async (data) => {
 	const uid = uidMatch ? parseInt(uidMatch[1], 10) : 0;
 
 	// Enforce 2FA on token generation route
-	if (data.method === 'POST' && routeTest.test(data.route) && await plugin.hasTotp(uid)) {
-		if (!data.req.headers.hasOwnProperty('x-two-factor-authentication')) {
-			// No 2FA received
-			return data.res.status(400).json(data.errorHandler.generate(
-				400, '2fa-enabled', 'Two Factor Authentication is enabled for this route, please send in the appropriate additional header for authorization', ['x-two-factor-authentication']
-			));
-		}
-
-		const skew = notp.totp.verify(data.req.headers['x-two-factor-authentication'], await plugin.get(uid));
-		if (!skew || Math.abs(skew.delta) > 2) {
-			return data.res.status(400).json(data.errorHandler.generate(
-				401, '2fa-failed', 'The Two-Factor Authentication code provided is not correct or has expired'
-			));
-		}
+	if (data.method === 'POST' && routeTest.test(data.route) && (await plugin.hasKey(uid)) && (data.req.session || {}).tfa !== true) {
+		return data.res.status(401).json(data.errorHandler.generate(
+			401, 'second-factor-required', 'Two-Factor Authentication is required to generate an API token'
+		));
 	}
 };
 
